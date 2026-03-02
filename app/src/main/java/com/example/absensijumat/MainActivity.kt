@@ -8,30 +8,47 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import com.example.absensijumat.ui.auth.LoginScreen
+import com.example.absensijumat.ui.home.Home
 import com.example.absensijumat.ui.theme.AbsensiJumatTheme
+import com.example.absensijumat.utils.SessionManager
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val sessionManager = SessionManager(this)
         enableEdgeToEdge()
         setContent {
+            var startDestination by remember{
+                mutableStateOf(if(sessionManager.fetchAuthToken() != null) "home" else "login")
+            }
             AbsensiJumatTheme {
-                AbsensiJumatApp()
+                if(startDestination == "home") {
+                    AbsensiJumatApp()
+                } else {
+                    LoginScreen(onLoginSuccess = {token ->
+                        startDestination = "home"
+                    })
+                }
             }
         }
     }
@@ -41,6 +58,16 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AbsensiJumatApp() {
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
+
+    val myItemColors = NavigationSuiteDefaults.itemColors(
+        navigationBarItemColors = NavigationBarItemDefaults.colors(
+            selectedIconColor = Color(0xFF00796B),
+            selectedTextColor = Color(0xFF00796B),
+            unselectedIconColor = Color.Gray,
+            unselectedTextColor = Color.Gray,
+            indicatorColor = Color.Transparent
+        )
+    )
 
     NavigationSuiteScaffold(
         navigationSuiteItems = {
@@ -54,16 +81,22 @@ fun AbsensiJumatApp() {
                     },
                     label = { Text(it.label) },
                     selected = it == currentDestination,
-                    onClick = { currentDestination = it }
+                    onClick = { currentDestination = it },
+                    colors = myItemColors
                 )
             }
-        }
+        },
+        containerColor = Color.White,
+        navigationSuiteColors = NavigationSuiteDefaults.colors(
+            navigationBarContainerColor = Color.White,
+            navigationRailContainerColor = Color.White,
+            navigationDrawerContainerColor = Color.White
+        )
     ) {
-        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-            Greeting(
-                name = "Android",
-                modifier = Modifier.padding(innerPadding)
-            )
+        when (currentDestination) {
+            AppDestinations.HOME -> Home()
+            AppDestinations.JURNAL -> PlaceholderScreen("Halaman Jurnal Riwayat")
+            AppDestinations.PROFILE -> PlaceholderScreen("Halaman Profil User")
         }
     }
 }
@@ -73,22 +106,18 @@ enum class AppDestinations(
     val icon: ImageVector,
 ) {
     HOME("Home", Icons.Default.Home),
-    FAVORITES("Favorites", Icons.Default.Favorite),
+    JURNAL("Jurnal", Icons.Default.DateRange),
     PROFILE("Profile", Icons.Default.AccountBox),
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    AbsensiJumatTheme {
-        Greeting("Android")
+fun PlaceholderScreen(name: String) {
+    Scaffold { innerPadding ->
+        Text(
+            text = name,
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+        )
     }
 }
