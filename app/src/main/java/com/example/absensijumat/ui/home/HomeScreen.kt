@@ -1,5 +1,11 @@
 package com.example.absensijumat.ui.home
 
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,9 +20,10 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,10 +31,14 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.absensijumat.MainActivity
 import com.example.absensijumat.ui.theme.AbsensiJumatTheme
 
 
@@ -38,7 +49,71 @@ val LightBg = Color(0xFFF8FAF9)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Home(modifier: Modifier = Modifier) {
+fun Home(
+    modifier: Modifier = Modifier,
+    viewModel: HomeViewModel = viewModel()
+) {
+    val context = LocalContext.current
+    val userData = viewModel.userData
+    val isLoading = viewModel.isLoading
+    val errorMessage = viewModel.errorMessage
+
+    var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var latitude by remember { mutableDoubleStateOf(0.0) }
+    var longitude by remember { mutableDoubleStateOf(0.0) }
+    var scheduleId by remember { mutableIntStateOf(0) }
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicturePreview()
+    ) { bitmap ->
+        if (bitmap != null) {
+            imageBitmap = bitmap
+            scheduleId = userData?.schedule_id ?: 0
+
+            viewModel.submitAttendance(
+                context = context,
+                scheduleId = scheduleId,
+                bitmap = bitmap,
+                latitude = latitude,
+                longtitude = longitude
+            ) {
+                Toast.makeText(context, "Absen Berhasil!", Toast.LENGTH_SHORT).show()
+                val intent = Intent(context, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+                context.startActivity(intent)
+            }
+        }
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            cameraLauncher.launch(null)
+        } else {
+            Toast.makeText(context, "Izin kamera ditolak", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val locationPermissionsLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        if (permissions.getOrDefault(android.Manifest.permission.ACCESS_FINE_LOCATION, false)) {
+            viewModel.getCurrentLocation(context) { lat, lon ->
+                latitude = lat
+                longitude = lon
+                cameraLauncher.launch(null)
+            }
+        } else {
+            Toast.makeText(context, "Izin lokasi ditolak", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.getCurrentUser(context)
+    }
+
     Scaffold(
         containerColor = LightBg,
         topBar = {
@@ -83,163 +158,233 @@ fun Home(modifier: Modifier = Modifier) {
             )
         }
     ) { innerPadding ->
-        LazyColumn(
-            modifier = modifier
+        Box(
+            modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(22.dp),
-            contentPadding = PaddingValues(bottom = 32.dp, top = 8.dp)
         ) {
-
-            item {
-                Column {
-                    Text(
-                        "Assalamu'alaikum,",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.Gray
-                    )
-                    Text(
-                        "Fana Ardi Kurniawan",
-                        style = MaterialTheme.typography.headlineSmall.copy(
-                            fontWeight = FontWeight.ExtraBold,
-                            letterSpacing = (-0.5).sp
-                        ),
-                        color = Color(0xFF2D3436)
-                    )
-                }
-            }
-
-            item {
-                Box(
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = ModernGreen
+                )
+            } else if (errorMessage.isNotEmpty()) {
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .shadow(12.dp, RoundedCornerShape(28.dp), ambientColor = ModernGreen)
-                        .clip(RoundedCornerShape(28.dp))
-                        .background(
-                            Brush.linearGradient(
-                                colors = listOf(ModernGreen, DarkEmerald)
-                            )
-                        )
-                        .padding(24.dp)
+                        .align(Alignment.Center)
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Default.Star,
-                                contentDescription = null,
-                                tint = SoftGold,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                "STATUS HARI INI",
-                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                                color = Color.White.copy(alpha = 0.8f)
-                            )
-                        }
-                        Spacer(Modifier.height(12.dp))
-                        Text(
-                            "Belum Mengisi Absen",
-                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                            color = Color.White
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            "Jangan sampai terlambat khutbah ya!",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.White.copy(alpha = 0.7f)
-                        )
+                    Text(text = errorMessage, color = Color.Red)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(onClick = { viewModel.getCurrentUser(context) }) {
+                        Icon(Icons.Default.Refresh, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Coba Lagi")
                     }
                 }
-            }
-            
-            item {
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
+            } else {
+                LazyColumn(
+                    modifier = modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(22.dp),
+                    contentPadding = PaddingValues(bottom = 32.dp, top = 8.dp)
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Surface(
-                            onClick = { /* Action */ },
+
+                    item {
+                        Column {
+                            Text(
+                                "Assalamu'alaikum,",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = Color.Gray
+                            )
+                            Text(
+                                userData?.name ?: "User",
+                                style = MaterialTheme.typography.headlineSmall.copy(
+                                    fontWeight = FontWeight.ExtraBold,
+                                    letterSpacing = (-0.5).sp
+                                ),
+                                color = Color(0xFF2D3436)
+                            )
+                        }
+                    }
+
+                    item {
+                        Box(
                             modifier = Modifier
-                                .size(140.dp)
-                                .shadow(24.dp, CircleShape, spotColor = ModernGreen),
-                            shape = CircleShape,
-                            color = Color.White,
-                            border = BorderStroke(8.dp, ModernGreen.copy(alpha = 0.1f))
+                                .fillMaxWidth()
+                                .shadow(
+                                    12.dp,
+                                    RoundedCornerShape(28.dp),
+                                    ambientColor = ModernGreen
+                                )
+                                .clip(RoundedCornerShape(28.dp))
+                                .background(
+                                    Brush.linearGradient(
+                                        colors = listOf(ModernGreen, DarkEmerald)
+                                    )
+                                )
+                                .padding(24.dp)
                         ) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(100.dp)
-                                        .clip(CircleShape)
-                                        .background(
-                                            Brush.radialGradient(
-                                                colors = listOf(ModernGreen, DarkEmerald)
-                                            )
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
+                            Column {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
-                                        Icons.Default.PlayArrow,
-                                        contentDescription = "Tap",
-                                        tint = Color.White,
-                                        modifier = Modifier.size(42.dp)
+                                        Icons.Default.Star,
+                                        contentDescription = null,
+                                        tint = SoftGold,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(
+                                        "STATUS JUM'AT INI",
+                                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                        color = Color.White.copy(alpha = 0.8f)
                                     )
                                 }
+                                Spacer(Modifier.height(12.dp))
+                                val hasSchedule = userData?.is_schedule_open == true
+                                val isDone = userData?.is_absent_today == true
+
+                                Text(
+                                    text = when {
+                                        !hasSchedule -> "Tidak Ada Jadwal Hari Ini"
+                                        isDone -> "Kamu Dapat Jadwal & Sudah Absen"
+                                        else -> "Kamu Dapat Jadwal, Yuk Absen Sekarang!"
+                                    },
+                                    style = MaterialTheme.typography.headlineSmall.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        letterSpacing = (-0.5).sp
+                                    ),
+                                    color = Color.White
+                                )
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    text = when{
+                                        !hasSchedule -> "jumat ini kamu tidak bisa absen"
+                                        isDone -> "jangan sampai terlambat ya"
+                                        else -> "jangan sampai lupa absen ya"
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color.White.copy(alpha = 0.7f)
+                                )
                             }
                         }
-                        Spacer(Modifier.height(16.dp))
+                    }
+
+                    item {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                val hasSchedule = userData?.is_schedule_open == true
+                                val isDone = userData?.is_absent_today == true
+
+                                Surface(
+                                    onClick = {
+                                        if (hasSchedule && !isDone){
+                                            if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
+                                                ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+
+                                                viewModel.getCurrentLocation(context) { lat, lon ->
+                                                    latitude = lat
+                                                    longitude = lon
+                                                    cameraLauncher.launch(null)
+                                                }
+                                            } else {
+                                                locationPermissionsLauncher.launch(
+                                                    arrayOf(
+                                                        android.Manifest.permission.ACCESS_FINE_LOCATION,
+                                                        android.Manifest.permission.ACCESS_COARSE_LOCATION,
+                                                        android.Manifest.permission.CAMERA
+                                                    )
+                                                )
+                                            }
+                                        }else{
+                                            Toast.makeText(context, "Kamu Tidak Dapat Absen Hari Ini", Toast.LENGTH_SHORT).show()
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .size(140.dp)
+                                        .shadow(24.dp, CircleShape, spotColor = ModernGreen),
+                                    shape = CircleShape,
+                                    color = Color.White,
+                                    border = BorderStroke(8.dp, ModernGreen.copy(alpha = 0.1f))
+                                ) {
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier.fillMaxSize()
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(100.dp)
+                                                .clip(CircleShape)
+                                                .background(
+                                                    Brush.radialGradient(
+                                                        colors = listOf(ModernGreen, DarkEmerald)
+                                                    )
+                                                ),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                Icons.Default.PlayArrow,
+                                                contentDescription = "Tap",
+                                                tint = Color.White,
+                                                modifier = Modifier.size(42.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                                Spacer(Modifier.height(16.dp))
+                                Text(
+                                    "TAP UNTUK MULAI ABSEN",
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = FontWeight.Black,
+                                        letterSpacing = 1.sp
+                                    ),
+                                    color = ModernGreen
+                                )
+                            }
+                        }
+                    }
+
+
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            ModernStatItem(
+                                modifier = Modifier.weight(1f),
+                                label = "Total Hadir",
+                                value = userData?.stats?.hadir?.toString() ?: "0",
+                                icon = Icons.Default.CheckCircle,
+                                color = ModernGreen
+                              )
+                            ModernStatItem(
+                                modifier = Modifier.weight(1f),
+                                label = "Total Pekan",
+                                value = userData?.stats?.total_pekan?.toString() ?: "0",
+                                icon = Icons.Default.Info,
+                                color = Color(0xFF3498DB)
+                            )
+                        }
+                    }
+
+
+                    item {
                         Text(
-                            "TAP UNTUK MULAI ABSEN",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = 1.sp
-                            ),
-                            color = ModernGreen
+                            "Aktivitas Terakhir",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            modifier = Modifier.padding(bottom = 1.dp)
                         )
                     }
+
+                    items(listOf("18 Okt", "11 Okt", "04 Okt")) { date ->
+                        ModernActivityItem(date = date)
+                    }
                 }
-            }
-
-
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    ModernStatItem(
-                        modifier = Modifier.weight(1f),
-                        label = "Hadir",
-                        value = "12",
-                        icon = Icons.Default.CheckCircle,
-                        color = ModernGreen
-                    )
-                    ModernStatItem(
-                        modifier = Modifier.weight(1f),
-                        label = "Total Pekan",
-                        value = "15",
-                        icon = Icons.Default.Info,
-                        color = Color(0xFF3498DB)
-                    )
-                }
-            }
-
-
-            item {
-                Text(
-                    "Aktivitas Terakhir",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    modifier = Modifier.padding(bottom = 1.dp)
-                )
-            }
-
-            items(listOf("18 Okt", "11 Okt", "04 Okt")) { date ->
-                ModernActivityItem(date = date)
             }
         }
     }

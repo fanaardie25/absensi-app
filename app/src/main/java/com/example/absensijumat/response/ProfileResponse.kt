@@ -8,7 +8,11 @@ data class ProfileResponse(
     val nis: String,
     val class_id: Int,
     val profile_photo_path: String,
-    val school_class: SchoolClass
+    val schedule_id: Int,
+    val school_class: SchoolClass,
+    val is_schedule_open: Boolean,
+    val is_absent_today: Boolean,
+    val stats: Stats
 )
 
 data class SchoolClass(
@@ -17,4 +21,9 @@ data class SchoolClass(
     val grade: String,
     val major: String,
     val sequence: String
+)
+
+data class Stats(
+    val hadir: Int,
+    val total_pekan: Int,
 )
