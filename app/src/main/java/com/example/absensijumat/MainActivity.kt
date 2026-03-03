@@ -1,6 +1,7 @@
 package com.example.absensijumat
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -47,6 +48,7 @@ class MainActivity : ComponentActivity() {
                     AbsensiJumatApp()
                 } else {
                     LoginScreen(onLoginSuccess = {token ->
+                        Toast.makeText(this,"Login Berhasil", Toast.LENGTH_SHORT).show()
                         startDestination = "home"
                     })
                 }

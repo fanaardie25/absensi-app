@@ -121,7 +121,7 @@ fun Home(
                 title = {
                     Column() {
                         Text(
-                            "JUMAT BERKAH",
+                            "SMKN Tengaran",
                             style = MaterialTheme.typography.titleSmall.copy(
                                 fontWeight = FontWeight.Black,
                                 letterSpacing = 2.sp

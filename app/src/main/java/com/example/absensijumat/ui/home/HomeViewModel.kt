@@ -22,6 +22,7 @@ import java.io.File
 import java.io.FileOutputStream
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
 
 class HomeViewModel(): ViewModel() {
     var userData by mutableStateOf<ProfileResponse?>(null)
@@ -75,8 +76,20 @@ class HomeViewModel(): ViewModel() {
             .enqueue(object : Callback<Void> {
                 override fun onResponse(call: Call<Void>, response: Response<Void>) {
                     isLoading = false
-                    if (response.isSuccessful) onAttendanceSuccess()
-                    else errorMessage = "Gagal: ${response.code()}"
+                    if (response.isSuccessful)
+                    {
+                        onAttendanceSuccess()
+                    } else {
+                        val errorJsonString = response.errorBody()?.string()
+                        Log.d("AttendanceResponse", "Error Body: $errorJsonString")
+                        val errorMessageFromServer = try {
+                            val jsonObject = JSONObject(errorJsonString)
+                            jsonObject.getString("message")
+                        } catch (e: Exception) {
+                            "Gagal: ${response.code()}"
+                        }
+                        errorMessage = "Gagal: $errorMessageFromServer"
+                    }
                     Log.d("AttendanceResponse", "Response: ${response.code()}")
                 }
                 override fun onFailure(call: Call<Void>, t: Throwable) {
