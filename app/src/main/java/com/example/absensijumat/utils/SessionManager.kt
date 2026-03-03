@@ -24,6 +24,12 @@ class SessionManager(context: Context) {
         return prefs.getString(USER_TOKEN, null)
     }
 
+    fun deleteAuthToken() {
+        prefs.edit {
+            remove(USER_TOKEN)
+        }
+    }
+
     fun saveClassId(classId: Int){
         prefs.edit {
             putInt(CLASS_ID, classId)

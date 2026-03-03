@@ -29,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import com.example.absensijumat.ui.auth.LoginScreen
 import com.example.absensijumat.ui.home.Home
+import com.example.absensijumat.ui.profile.ProfileScreen
 import com.example.absensijumat.ui.theme.AbsensiJumatTheme
 import com.example.absensijumat.utils.SessionManager
 
@@ -96,7 +97,7 @@ fun AbsensiJumatApp() {
         when (currentDestination) {
             AppDestinations.HOME -> Home()
             AppDestinations.JURNAL -> PlaceholderScreen("Halaman Jurnal Riwayat")
-            AppDestinations.PROFILE -> PlaceholderScreen("Halaman Profil User")
+            AppDestinations.PROFILE -> ProfileScreen()
         }
     }
 }

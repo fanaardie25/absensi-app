@@ -305,8 +305,9 @@ fun ModernActivityItem(date: String) {
             Spacer(modifier = Modifier.width(16.dp))
             Column {
                 Text(
-                    "Masjid SMKN Tengaran",
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                    "Hadir",
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                    color = ModernGreen
                 )
                 Text(
                     "Jumat, $date", 
@@ -314,12 +315,6 @@ fun ModernActivityItem(date: String) {
                     color = Color.Gray
                 )
             }
-            Spacer(modifier = Modifier.weight(1f))
-            Text(
-                "HADIR",
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                color = ModernGreen
-            )
         }
     }
 }
