@@ -1,10 +1,14 @@
 package com.example.absensijumat
 
+import android.Manifest
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -18,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,6 +48,20 @@ class MainActivity : ComponentActivity() {
             var startDestination by remember{
                 mutableStateOf(if(sessionManager.fetchAuthToken() != null) "home" else "login")
             }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                val launcher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.RequestPermission()
+                ) { isGranted ->
+                    if (!isGranted) {
+                        Toast.makeText(this, "Izin notifikasi ditolak. Anda mungkin tidak menerima pemberitahuan penting.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                LaunchedEffect(Unit) {
+                    launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
+
             AbsensiJumatTheme {
                 if(startDestination == "home") {
                     AbsensiJumatApp()

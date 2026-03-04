@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "14015803266",
+    "project_id": "presensi-app-sata",
+    "storage_bucket": "presensi-app-sata.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:14015803266:android:cfa95b5bd5bf45ac56299b",
+        "android_client_info": {
+          "package_name": "com.example.absensijumat"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1kKp52ySvN-IyZGBaQS3JOCwZEyuBU38"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

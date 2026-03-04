@@ -3,6 +3,7 @@ package com.example.absensijumat.ui.home
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -40,6 +41,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.absensijumat.MainActivity
 import com.example.absensijumat.ui.theme.AbsensiJumatTheme
+import com.google.firebase.messaging.FirebaseMessaging
 
 
 val ModernGreen = Color(0xFF00A36C)
@@ -68,7 +70,7 @@ fun Home(
     ) { bitmap ->
         if (bitmap != null) {
             imageBitmap = bitmap
-            scheduleId = userData?.schedule_id ?: 0
+            scheduleId = userData?.schedule_id ?:   0
 
             viewModel.submitAttendance(
                 context = context,
@@ -107,6 +109,22 @@ fun Home(
             }
         } else {
             Toast.makeText(context, "Izin lokasi ditolak", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    LaunchedEffect(userData) {
+        userData?.let { user ->
+            val classId = user.class_id
+            val topicName = "class_$classId"
+
+            FirebaseMessaging.getInstance().subscribeToTopic(topicName)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Log.d("FCM_HOME", "Berhasil subscribe ke: $topicName")
+                    } else {
+                        Log.e("FCM_HOME", "Gagal subscribe topik")
+                    }
+                }
         }
     }
 

@@ -1,7 +1,8 @@
-plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.compose)
-}
+    plugins {
+        alias(libs.plugins.android.application)
+        alias(libs.plugins.kotlin.compose)
+        id("com.google.gms.google-services")
+    }
 
 android {
     namespace = "com.example.absensijumat"
@@ -62,4 +63,7 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.logging.interceptor)
     implementation(libs.play.services.location)
+    implementation(platform("com.google.firebase:firebase-bom:34.10.0"))
+    implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-analytics")
 }
