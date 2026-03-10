@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import com.example.absensijumat.ui.auth.LoginScreen
+import com.example.absensijumat.ui.history.HistoryScreen
 import com.example.absensijumat.ui.home.Home
 import com.example.absensijumat.ui.profile.ProfileScreen
 import com.example.absensijumat.ui.theme.AbsensiJumatTheme
@@ -117,7 +118,7 @@ fun AbsensiJumatApp() {
     ) {
         when (currentDestination) {
             AppDestinations.HOME -> Home()
-            AppDestinations.JURNAL -> PlaceholderScreen("Halaman Jurnal Riwayat")
+            AppDestinations.JURNAL -> HistoryScreen()
             AppDestinations.PROFILE -> ProfileScreen()
         }
     }
@@ -128,7 +129,7 @@ enum class AppDestinations(
     val icon: ImageVector,
 ) {
     HOME("Home", Icons.Default.Home),
-    JURNAL("Jurnal", Icons.Default.DateRange),
+    JURNAL("History", Icons.Default.DateRange),
     PROFILE("Profile", Icons.Default.AccountBox),
 }
 

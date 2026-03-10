@@ -1,7 +1,10 @@
 package com.example.absensijumat.response
 
+import android.os.Message
+
 data class LoginResponse(
     val success: Boolean,
+    val message: String?,
     val data: UserData?,
     val access_token: String?
 )

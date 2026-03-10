@@ -13,6 +13,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,6 +34,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -40,6 +42,9 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.absensijumat.MainActivity
+import com.example.absensijumat.R
+import com.example.absensijumat.response.AttendanceData
+import com.example.absensijumat.response.LatestActivityResponse
 import com.example.absensijumat.ui.theme.AbsensiJumatTheme
 import com.google.firebase.messaging.FirebaseMessaging
 
@@ -57,6 +62,7 @@ fun Home(
 ) {
     val context = LocalContext.current
     val userData = viewModel.userData
+    val activityData = viewModel.activityData
     val isLoading = viewModel.isLoading
     val errorMessage = viewModel.errorMessage
 
@@ -130,6 +136,7 @@ fun Home(
 
     LaunchedEffect(Unit) {
         viewModel.getCurrentUser(context)
+        viewModel.getLatestActivity(context)
     }
 
     Scaffold(
@@ -346,7 +353,7 @@ fun Home(
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Icon(
-                                                Icons.Default.PlayArrow,
+                                                painter = painterResource(R.drawable.camera_add_svgrepo_com),
                                                 contentDescription = "Tap",
                                                 tint = Color.White,
                                                 modifier = Modifier.size(42.dp)
@@ -399,14 +406,24 @@ fun Home(
                         )
                     }
 
-                    items(listOf("18 Okt", "11 Okt", "04 Okt")) { date ->
-                        ModernActivityItem(date = date)
+                    if (activityData != null) {
+                        item {
+                            ModernActivityItem(
+                                date = activityData.date,
+                                status = activityData.status
+                            )
+                        }
+                    } else {
+                        item {
+                            Text("Belum ada aktivitas", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                        }
                     }
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun ModernStatItem(
@@ -443,7 +460,7 @@ fun ModernStatItem(
 }
 
 @Composable
-fun ModernActivityItem(date: String) {
+fun ModernActivityItem(date: String?,status: String) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -467,13 +484,19 @@ fun ModernActivityItem(date: String) {
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column {
+                val displayStatus = when (status) {
+                    "hadir" -> "Hadir"
+                    "tidak_hadir" -> "Tidak Hadir"
+                    "izin" -> "Izin"
+                    else -> "Status Tidak Diketahui"
+                }
                 Text(
-                    "Hadir",
+                    displayStatus,
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                     color = ModernGreen
                 )
                 Text(
-                    "Jumat, $date", 
+                    "Jumat, ${date ?: "Tanggal tidak tersedia"}",
                     style = MaterialTheme.typography.bodySmall, 
                     color = Color.Gray
                 )

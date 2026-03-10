@@ -6,10 +6,13 @@ import android.graphics.Bitmap
 import android.location.Location
 import android.util.Log
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.absensijumat.network.RetrofitClient
+import com.example.absensijumat.response.AttendanceData
+import com.example.absensijumat.response.LatestActivityResponse
 import com.example.absensijumat.response.ProfileResponse
 import com.example.absensijumat.utils.SessionManager
 import com.google.android.gms.location.LocationServices
@@ -28,6 +31,9 @@ class HomeViewModel(): ViewModel() {
     var userData by mutableStateOf<ProfileResponse?>(null)
     var isLoading by mutableStateOf(false)
     var errorMessage by mutableStateOf("")
+
+    var activityData by mutableStateOf<AttendanceData?>(null)
+
 
     @SuppressLint("MissingPermission")
     fun getCurrentLocation(context: Context, onSuccess: (Double, Double) -> Unit) {
@@ -78,6 +84,7 @@ class HomeViewModel(): ViewModel() {
                     isLoading = false
                     if (response.isSuccessful)
                     {
+                        Log.d("success",response.isSuccessful.toString())
                         onAttendanceSuccess()
                     } else {
                         val errorJsonString = response.errorBody()?.string()
@@ -116,6 +123,7 @@ class HomeViewModel(): ViewModel() {
                 response: Response<ProfileResponse?>
             ) {
                 isLoading = false
+                Log.d("AttendanceResponse", "KODE ASLI: ${response.code()}")
                 if (response.isSuccessful){
                     val body = response.body()
                     if(body != null){
@@ -134,6 +142,48 @@ class HomeViewModel(): ViewModel() {
             ) {
                 isLoading = false
                 errorMessage = "Terjadi Kesalahan: ${t?.message}"
+            }
+        })
+    }
+
+    fun getLatestActivity(context: Context){
+        val sessionManager = SessionManager(context)
+        val token = sessionManager.fetchAuthToken()
+
+        if (token == null){
+            errorMessage = "Token tidak ditemukan"
+            return
+        }
+
+        isLoading = true
+        errorMessage = ""
+        val bearer = "Bearer $token"
+
+        RetrofitClient.instance.getLatestActivity(bearer).enqueue(object: Callback<LatestActivityResponse> {
+            override fun onResponse(
+                call: Call<LatestActivityResponse>,
+                response: Response<LatestActivityResponse>
+            ) {
+                isLoading = false
+                if (response.isSuccessful){
+                    val body = response.body()
+                    if(body != null){
+                        activityData = body.data?.firstOrNull()
+                        Log.d("LatestActivity", "Data: $body")
+                    }else{
+                        errorMessage = "Data tidak ditemukan"
+                    }
+                }else{
+                    errorMessage = "Gagal mengambil data: ${response.code()}"
+                }
+            }
+
+            override fun onFailure(
+                call: Call<LatestActivityResponse>,
+                t: Throwable
+            ) {
+                isLoading = false
+                errorMessage = "Terjadi Kesalahan: ${t.message}"
             }
         })
     }

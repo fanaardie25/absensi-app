@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import com.example.absensijumat.network.RetrofitClient
 import com.example.absensijumat.response.LoginResponse
 import com.example.absensijumat.utils.SessionManager
+import com.google.gson.Gson
 import retrofit2.Callback
 
 
@@ -43,16 +44,16 @@ class LoginViewModel: ViewModel() {
                         errorMessage = ""
                         onSuccess(token)
                     } else {
-                        errorMessage = "Login gagal"
+                        errorMessage = "Login gagal: Token tidak ditemukan"
                     }
                 } else {
-                    val errorMsg = response.errorBody()?.string()
+                    val errorString = response.errorBody()?.string()
+                    try {
+                        val errorObj = Gson().fromJson(errorString, LoginResponse::class.java)
 
-                    errorMessage = when (response.code()) {
-                        401 -> "Email atau Password salah!"
-                        404 -> "Endpoint tidak ditemukan (404)"
-                        500 -> "Server sedang down (500)"
-                        else -> "Gagal: ${response.message()}"
+                        errorMessage = errorObj.message ?: "Login Gagal"
+                    } catch (e: Exception) {
+                        errorMessage = "Error kode: ${response.code()}"
                     }
                 }
             }

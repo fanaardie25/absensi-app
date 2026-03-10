@@ -1,5 +1,7 @@
 package com.example.absensijumat.network
 
+import com.example.absensijumat.response.ActivityResponse
+import com.example.absensijumat.response.LatestActivityResponse
 import com.example.absensijumat.response.LoginResponse
 import com.example.absensijumat.response.ProfileResponse
 import okhttp3.MultipartBody
@@ -8,6 +10,7 @@ import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.Headers
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
@@ -27,6 +30,7 @@ interface ApiService {
     ): Call<Void>
 
     @Multipart
+    @Headers("Accept: application/json")
     @POST("attendance")
     fun attendance(
         @Header("Authorization") token: String,
@@ -35,5 +39,15 @@ interface ApiService {
         @Part("latitude") latitude: RequestBody,
         @Part("longtitude") longtitude: RequestBody
     ): Call<Void>
+
+    @GET("user/activity/latest")
+    fun getLatestActivity(
+        @Header("Authorization") token: String
+    ): Call<LatestActivityResponse>
+
+    @GET("user/activity/all")
+    fun getAllActivity(
+        @Header("Authorization") token: String
+    ): Call<ActivityResponse>
 
 }
