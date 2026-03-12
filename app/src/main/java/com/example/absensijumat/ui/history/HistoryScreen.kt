@@ -135,11 +135,10 @@ fun HistoryItem(data: AttendanceDataAll) {
         ) {
             // Photo
             AsyncImage(
-                model = "http://192.168.1.7:8000${data.photo_path}",
+                model = "http://192.168.1.6:8000/storage/${data.photo_path}",
                 modifier = Modifier
                     .size(64.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(ModernGreen.copy(alpha = 0.1f)),
+                    .clip(RoundedCornerShape(12.dp)),
                 contentDescription = null,
             )
 

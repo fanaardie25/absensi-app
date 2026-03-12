@@ -36,6 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.example.absensijumat.MainActivity
 import com.example.absensijumat.R
 import com.example.absensijumat.ui.home.ModernGreen
@@ -72,15 +73,6 @@ fun ProfileScreen(
                         ),
                         color = ModernGreen
                     )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = ModernGreen
-                        )
-                    }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = LightBg)
             )
@@ -132,12 +124,14 @@ fun ProfileScreen(
                                 .padding(8.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Image(
-                                painter = painterResource(R.drawable.dummy_profile),
-                                contentDescription = "Profile Picture",
+                            AsyncImage(
+                                model = "http://192.168.1.6:8000/storage/${profile.profile_photo_path}",
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .clip(CircleShape),
+                                contentDescription = "Foto Profil",
+                                error = painterResource(R.drawable.dummy_profile),
+                                placeholder = painterResource(R.drawable.dummy_profile),
                                 contentScale = ContentScale.Crop
                             )
                         }
@@ -187,8 +181,45 @@ fun ProfileScreen(
                                 }
                             }
                         }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(20.dp),
+                            color = Color.White,
+                            shadowElevation = 2.dp
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(20.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(Color.Blue.copy(alpha = 0.1f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Person,
+                                        contentDescription = null,
+                                        tint = Color.Blue,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Column {
+                                    Text("Guru Pembimbing", style = MaterialTheme.typography.labelMedium, color = Color.Gray)
+                                    Text(
+                                        profile.teacher ?: "Belum Ditentukan",
+                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                                    )
+                                }
+                            }
+                        }
+
                         Spacer(modifier = Modifier.height(32.dp))
                     }
+
 
                     item {
                         Text(

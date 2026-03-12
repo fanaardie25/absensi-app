@@ -10,6 +10,7 @@ data class ProfileResponse(
     val profile_photo_path: String,
     val schedule_id: Int,
     val school_class: SchoolClass,
+    val teacher: String?,
     val is_schedule_open: Boolean,
     val is_absent_today: Boolean,
     val stats: Stats
