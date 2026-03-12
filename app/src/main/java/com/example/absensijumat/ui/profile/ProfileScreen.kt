@@ -2,9 +2,7 @@ package com.example.absensijumat.ui.profile
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,11 +11,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
@@ -44,18 +40,59 @@ import com.example.absensijumat.R
 import com.example.absensijumat.ui.home.ModernGreen
 import com.example.absensijumat.ui.theme.AbsensiJumatTheme
 import com.example.absensijumat.utils.SessionManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.PickVisualMediaRequest
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
+
 
 val LightBg = Color(0xFFF8FAF9)
+
+object FileUtils {
+    fun uriToFile(context: Context, uri: Uri): File {
+        val contentResolver = context.contentResolver
+        val inputStream: InputStream? = contentResolver.openInputStream(uri)
+
+        val tempFile = File(context.cacheDir, "upload_temp_${System.currentTimeMillis()}.webp")
+
+        val bitmap = BitmapFactory.decodeStream(inputStream)
+        val outputStream = FileOutputStream(tempFile)
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, 80, outputStream)
+        } else {
+            @Suppress("DEPRECATION")
+            bitmap.compress(Bitmap.CompressFormat.WEBP, 80, outputStream)
+        }
+        outputStream.flush()
+        outputStream.close()
+        inputStream?.close()
+
+        return tempFile
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     modifier: Modifier = Modifier,
     viewModel: ProfileViewModel = viewModel(),
-    onBackClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    val sessionManager = SessionManager(context)
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        uri?.let {
+            val compressedFile = FileUtils.uriToFile(context, it)
+            viewModel.uploadPhoto(context, compressedFile)
+        }
+    }
 
     LaunchedEffect(Unit) { 
         viewModel.fetchProfile(context) 
@@ -126,16 +163,41 @@ fun ProfileScreen(
                                 .padding(8.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            AsyncImage(
-                                model = "${BuildConfig.BASE_STORAGE}${profile.profile_photo_path}",
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(CircleShape),
-                                contentDescription = "Foto Profil",
-                                error = painterResource(R.drawable.dummy_profile),
-                                placeholder = painterResource(R.drawable.dummy_profile),
-                                contentScale = ContentScale.Crop
-                            )
+                            Box(
+                                modifier = Modifier.size(100.dp),
+                                contentAlignment = Alignment.BottomEnd
+                            ) {
+                                AsyncImage(
+                                    model = "${BuildConfig.BASE_STORAGE}${profile.profile_photo_path}",
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(CircleShape)
+                                        .border(2.dp, Color.White, CircleShape),
+                                    contentDescription = "Foto Profil",
+                                    error = painterResource(R.drawable.dummy_profile),
+                                    placeholder = painterResource(R.drawable.dummy_profile),
+                                    contentScale = ContentScale.Crop
+                                )
+
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(CircleShape)
+                                        .background(ModernGreen) 
+                                        .border(2.dp, Color.White, CircleShape)
+                                        .clickable {
+                                            launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = "Ganti Foto",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
                         }
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
@@ -219,24 +281,6 @@ fun ProfileScreen(
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(32.dp))
-                    }
-
-
-                    item {
-                        Text(
-                            "PENGATURAN AKUN",
-                            style = MaterialTheme.typography.labelLarge.copy(
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.sp
-                            ),
-                            color = Color.Gray,
-                            modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
-                        )
-                        
-                        ProfileMenuItem(icon = Icons.Default.Person, label = "Edit Profil")
-                        ProfileMenuItem(icon = Icons.Default.Lock, label = "Ganti Password")
-                        
                         Spacer(modifier = Modifier.height(32.dp))
                     }
 

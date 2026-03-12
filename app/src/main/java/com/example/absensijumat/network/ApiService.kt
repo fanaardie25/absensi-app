@@ -7,6 +7,7 @@ import com.example.absensijumat.response.ProfileResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -49,5 +50,17 @@ interface ApiService {
     fun getAllActivity(
         @Header("Authorization") token: String
     ): Call<ActivityResponse>
+
+    @Multipart
+    @POST("user/update/profile")
+    fun updatePhotoProfile(
+        @Header("Authorization") token: String,
+        @Part photo: MultipartBody.Part
+    ): Call<UploadResponse>
+
+    data class UploadResponse(
+        val success: Boolean,
+        val message: String
+    )
 
 }
