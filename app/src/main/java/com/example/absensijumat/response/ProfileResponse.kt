@@ -26,5 +26,5 @@ data class SchoolClass(
 
 data class Stats(
     val hadir: Int,
-    val total_pekan: Int,
+    val tidak_hadir: Int,
 )

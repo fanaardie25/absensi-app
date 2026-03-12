@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,6 +34,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -41,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.example.absensijumat.MainActivity
 import com.example.absensijumat.R
 import com.example.absensijumat.response.AttendanceData
@@ -153,11 +156,6 @@ fun Home(
                             ),
                             color = ModernGreen
                         )
-                        Text(
-                            "Tahun ajaran 2025/2026",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.Gray
-                        )
                     }
                 },
                 actions = {
@@ -171,12 +169,15 @@ fun Home(
                             .clickable { /* Profile */ },
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            Icons.Default.Person,
-                            contentDescription = "Profile",
-                            tint = ModernGreen,
-                            modifier = Modifier.size(20.dp)
-                        )
+                        val photoUrl = userData?.profile_photo_path
+                            AsyncImage(
+                                model = "http://192.168.1.6:8000/storage/$photoUrl",
+                                contentDescription = "Profile Picture",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize(),
+                                error = painterResource(R.drawable.dummy_profile),
+                                placeholder = painterResource(R.drawable.dummy_profile),
+                            )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = LightBg)
@@ -220,7 +221,7 @@ fun Home(
                     item {
                         Column {
                             Text(
-                                "Assalamu'alaikum,",
+                                "Selamat datang",
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = Color.Gray
                             )
@@ -262,7 +263,7 @@ fun Home(
                                     )
                                     Spacer(Modifier.width(8.dp))
                                     Text(
-                                        "STATUS JUM'AT INI",
+                                        "STATUS HARI INI",
                                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                                         color = Color.White.copy(alpha = 0.8f)
                                     )
@@ -286,7 +287,7 @@ fun Home(
                                 Spacer(Modifier.height(4.dp))
                                 Text(
                                     text = when{
-                                        !hasSchedule -> "jumat ini kamu tidak bisa absen"
+                                        !hasSchedule -> "Hari ini kamu tidak bisa absen"
                                         isDone -> "jangan sampai terlambat ya"
                                         else -> "jangan sampai lupa absen ya"
                                     },
@@ -389,10 +390,10 @@ fun Home(
                               )
                             ModernStatItem(
                                 modifier = Modifier.weight(1f),
-                                label = "Total Pekan",
-                                value = userData?.stats?.total_pekan?.toString() ?: "0",
-                                icon = Icons.Default.Info,
-                                color = Color(0xFF3498DB)
+                                label = "Total Alpa",
+                                value = userData?.stats?.tidak_hadir?.toString() ?: "0",
+                                icon = Icons.Default.Warning,
+                                color = Color(0xFFE74C3C)
                             )
                         }
                     }

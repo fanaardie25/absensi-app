@@ -19,7 +19,13 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "BASE_URL", "\"http://192.168.1.6:8000/api/\"")
+            buildConfigField("String", "BASE_STORAGE", "\"http://192.168.1.6:8000/storage/\"")
+        }
         release {
+            buildConfigField("String", "BASE_URL", "\"https://sata.sch.id/api/\"")
+            buildConfigField("String", "BASE_STORAGE", "\"https://sata.sch.id/storage/\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -34,6 +40,7 @@ android {
     buildFeatures {
         compose = true
         viewBinding = true
+        buildConfig = true
     }
 }
 
