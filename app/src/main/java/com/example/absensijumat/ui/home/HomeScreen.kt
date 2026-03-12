@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.absensijumat.BuildConfig
 import com.example.absensijumat.MainActivity
 import com.example.absensijumat.R
 import com.example.absensijumat.response.AttendanceData
@@ -171,7 +172,7 @@ fun Home(
                     ) {
                         val photoUrl = userData?.profile_photo_path
                             AsyncImage(
-                                model = "http://192.168.1.6:8000/storage/$photoUrl",
+                                model = "${BuildConfig.BASE_STORAGE}${photoUrl}",
                                 contentDescription = "Profile Picture",
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier.fillMaxSize(),

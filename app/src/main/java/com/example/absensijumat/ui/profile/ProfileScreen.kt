@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.absensijumat.BuildConfig
 import com.example.absensijumat.MainActivity
 import com.example.absensijumat.R
 import com.example.absensijumat.ui.home.ModernGreen
@@ -126,7 +127,7 @@ fun ProfileScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             AsyncImage(
-                                model = "http://192.168.1.6:8000/storage/${profile.profile_photo_path}",
+                                model = "${BuildConfig.BASE_STORAGE}${profile.profile_photo_path}",
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .clip(CircleShape),
