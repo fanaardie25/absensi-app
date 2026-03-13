@@ -16,6 +16,7 @@ import com.example.absensijumat.response.LatestActivityResponse
 import com.example.absensijumat.response.ProfileResponse
 import com.example.absensijumat.utils.SessionManager
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import retrofit2.Call
@@ -38,15 +39,18 @@ class HomeViewModel(): ViewModel() {
     @SuppressLint("MissingPermission")
     fun getCurrentLocation(context: Context, onSuccess: (Double, Double) -> Unit) {
         val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-        fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
-            if (location != null) {
-                onSuccess(location.latitude, location.longitude)
-            } else {
-                errorMessage = "Gagal mendapatkan lokasi. Pastikan GPS aktif."
+        val priority = Priority.PRIORITY_HIGH_ACCURACY
+
+        fusedLocationClient.getCurrentLocation(priority, null)
+            .addOnSuccessListener { location: Location? ->
+                if (location != null) {
+                    onSuccess(location.latitude, location.longitude)
+                } else {
+                    errorMessage = "GPS sedang mencari sinyal. Coba beberapa saat lagi."
+                }
+            }.addOnFailureListener {
+                errorMessage = "Kesalahan lokasi: ${it.message}"
             }
-        }.addOnFailureListener {
-            errorMessage = "Kesalahan lokasi: ${it.message}"
-        }
     }
 
     fun submitAttendance(
@@ -97,7 +101,6 @@ class HomeViewModel(): ViewModel() {
                         }
                         errorMessage = "Gagal: $errorMessageFromServer"
                     }
-                    Log.d("AttendanceResponse", "Response: ${response.code()}")
                 }
                 override fun onFailure(call: Call<Void>, t: Throwable) {
                     isLoading = false

@@ -98,27 +98,21 @@ fun Home(
         }
     }
 
-    val cameraPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            cameraLauncher.launch(null)
-        } else {
-            Toast.makeText(context, "Izin kamera ditolak", Toast.LENGTH_SHORT).show()
-        }
-    }
 
-    val locationPermissionsLauncher = rememberLauncherForActivityResult(
+    val requestPermissionsLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        if (permissions.getOrDefault(android.Manifest.permission.ACCESS_FINE_LOCATION, false)) {
+        val locationGranted = permissions[android.Manifest.permission.ACCESS_FINE_LOCATION] ?: false
+        val cameraGranted = permissions[android.Manifest.permission.CAMERA] ?: false
+
+        if (locationGranted && cameraGranted) {
             viewModel.getCurrentLocation(context) { lat, lon ->
                 latitude = lat
                 longitude = lon
                 cameraLauncher.launch(null)
             }
         } else {
-            Toast.makeText(context, "Izin lokasi ditolak", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Izin Kamera & Lokasi wajib diberikan", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -310,25 +304,29 @@ fun Home(
 
                                 Surface(
                                     onClick = {
-                                        if (hasSchedule && !isDone){
-                                            if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
-                                                ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                                        if (hasSchedule && !isDone) {
+                                            // Cek apakah semua izin sudah dikasih
+                                            val hasCamera = ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+                                            val hasLocation = ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
 
+                                            if (hasCamera && hasLocation) {
+                                                // Kasus: Izin udah aman semua
                                                 viewModel.getCurrentLocation(context) { lat, lon ->
                                                     latitude = lat
                                                     longitude = lon
                                                     cameraLauncher.launch(null)
                                                 }
                                             } else {
-                                                locationPermissionsLauncher.launch(
+                                                // Kasus: Ada yang kurang, minta semua sekaligus
+                                                requestPermissionsLauncher.launch(
                                                     arrayOf(
+                                                        android.Manifest.permission.CAMERA,
                                                         android.Manifest.permission.ACCESS_FINE_LOCATION,
-                                                        android.Manifest.permission.ACCESS_COARSE_LOCATION,
-                                                        android.Manifest.permission.CAMERA
+                                                        android.Manifest.permission.ACCESS_COARSE_LOCATION
                                                     )
                                                 )
                                             }
-                                        }else{
+                                        } else {
                                             Toast.makeText(context, "Kamu Tidak Dapat Absen Hari Ini", Toast.LENGTH_SHORT).show()
                                         }
                                     },
