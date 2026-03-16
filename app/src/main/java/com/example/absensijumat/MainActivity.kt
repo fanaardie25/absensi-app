@@ -16,8 +16,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
@@ -29,6 +31,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -38,6 +41,7 @@ import com.example.absensijumat.ui.history.HistoryScreen
 import com.example.absensijumat.ui.home.Home
 import com.example.absensijumat.ui.profile.ProfileScreen
 import com.example.absensijumat.ui.theme.AbsensiJumatTheme
+import com.example.absensijumat.ui.yasin.YasinScreen
 import com.example.absensijumat.utils.SessionManager
 
 class MainActivity : ComponentActivity() {
@@ -152,10 +156,17 @@ fun AbsensiJumatApp() {
             AppDestinations.entries.forEach {
                 item(
                     icon = {
-                        Icon(
-                            it.icon,
-                            contentDescription = it.label
-                        )
+                        if (it.iconVector != null) {
+                            Icon(
+                                imageVector = it.iconVector,
+                                contentDescription = it.label,
+                            )
+                        } else {
+                           Icon(
+                                painter = painterResource(id = it.iconRes!!),
+                                contentDescription = it.label,
+                           )
+                        }
                     },
                     label = { Text(it.label) },
                     selected = it == currentDestination,
@@ -174,6 +185,7 @@ fun AbsensiJumatApp() {
         when (currentDestination) {
             AppDestinations.HOME -> Home()
             AppDestinations.JURNAL -> HistoryScreen()
+            AppDestinations.YASIN -> YasinScreen(onBackClick = { currentDestination = AppDestinations.HOME })
             AppDestinations.PROFILE -> ProfileScreen()
         }
     }
@@ -181,21 +193,11 @@ fun AbsensiJumatApp() {
 
 enum class AppDestinations(
     val label: String,
-    val icon: ImageVector,
+    val iconVector: ImageVector? = null,
+    val iconRes: Int? = null,
 ) {
-    HOME("Home", Icons.Default.Home),
-    JURNAL("History", Icons.Default.DateRange),
-    PROFILE("Profile", Icons.Default.AccountBox),
-}
-
-@Composable
-fun PlaceholderScreen(name: String) {
-    Scaffold { innerPadding ->
-        Text(
-            text = name,
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-        )
-    }
+    HOME("Home", iconVector = Icons.Default.Home),
+    JURNAL("Riwayat", iconVector = Icons.Default.DateRange),
+    YASIN("Yasin", iconRes = R.drawable.book_open_svgrepo_com),
+    PROFILE("Profil", iconVector = Icons.Default.Person),
 }

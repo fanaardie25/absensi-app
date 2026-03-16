@@ -4,6 +4,7 @@ import com.example.absensijumat.response.ActivityResponse
 import com.example.absensijumat.response.LatestActivityResponse
 import com.example.absensijumat.response.LoginResponse
 import com.example.absensijumat.response.ProfileResponse
+import com.example.absensijumat.response.YasinResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Call
@@ -15,6 +16,7 @@ import retrofit2.http.Headers
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
+import retrofit2.http.Url
 
 interface ApiService {
     @POST("auth/login")
@@ -57,6 +59,9 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Part photo: MultipartBody.Part
     ): Call<UploadResponse>
+
+    @GET
+    fun getYasin(@Url url: String = "https://equran.id/api/v2/surat/36"): Call<YasinResponse>
 
     data class UploadResponse(
         val success: Boolean,
