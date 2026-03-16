@@ -1,6 +1,9 @@
 package com.example.absensijumat
 
 import android.Manifest
+import android.content.Context
+import android.location.Location
+import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
@@ -21,19 +24,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.example.absensijumat.ui.auth.LoginScreen
+import com.example.absensijumat.ui.fakegps.FakeGpsScreen
 import com.example.absensijumat.ui.history.HistoryScreen
 import com.example.absensijumat.ui.home.Home
 import com.example.absensijumat.ui.profile.ProfileScreen
@@ -46,8 +46,23 @@ class MainActivity : ComponentActivity() {
         val sessionManager = SessionManager(this)
         enableEdgeToEdge()
         setContent {
-            var startDestination by remember{
-                mutableStateOf(if(sessionManager.fetchAuthToken() != null) "home" else "login")
+            var startDestination by remember {
+                mutableStateOf(if (sessionManager.fetchAuthToken() != null) "home" else "login")
+            }
+
+            var isFakeGpsDetected by remember { mutableStateOf(false) }
+
+            val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+            DisposableEffect(lifecycleOwner) {
+                val observer = LifecycleEventObserver { _, event ->
+                    if (event == Lifecycle.Event.ON_RESUME) {
+                        isFakeGpsDetected = checkIsMockLocationActive(this@MainActivity)
+                    }
+                }
+                lifecycleOwner.lifecycle.addObserver(observer)
+                onDispose {
+                    lifecycleOwner.lifecycle.removeObserver(observer)
+                }
             }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -55,7 +70,11 @@ class MainActivity : ComponentActivity() {
                     contract = ActivityResultContracts.RequestPermission()
                 ) { isGranted ->
                     if (!isGranted) {
-                        Toast.makeText(this, "Izin notifikasi ditolak. Anda mungkin tidak menerima pemberitahuan penting.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            this,
+                            "Izin notifikasi ditolak. Anda mungkin tidak menerima pemberitahuan penting.",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
                 LaunchedEffect(Unit) {
@@ -64,15 +83,51 @@ class MainActivity : ComponentActivity() {
             }
 
             AbsensiJumatTheme {
-                if(startDestination == "home") {
+                if (isFakeGpsDetected) {
+                    FakeGpsScreen()
+                } else if (startDestination == "home") {
                     AbsensiJumatApp()
                 } else {
-                    LoginScreen(onLoginSuccess = {token ->
-                        Toast.makeText(this,"Login Berhasil", Toast.LENGTH_SHORT).show()
+                    LoginScreen(onLoginSuccess = { token ->
+                        Toast.makeText(this, "Login Berhasil", Toast.LENGTH_SHORT).show()
                         startDestination = "home"
                     })
                 }
             }
+        }
+    }
+
+    private fun checkIsMockLocationActive(context: Context): Boolean {
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return try {
+            val providers = locationManager.getProviders(true)
+            for (provider in providers) {
+                val location = locationManager.getLastKnownLocation(provider)
+                if (location != null) {
+                    val isMocked = isLocationMocked(location)
+
+                    if (isMocked) {
+                        val ageInMs = System.currentTimeMillis() - location.time
+                        if (ageInMs < 1 * 30 * 1000) {
+                            return true
+                        }
+                    }
+                }
+            }
+            false
+        } catch (e: SecurityException) {
+            false
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private fun isLocationMocked(location: Location): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            location.isMock
+        } else {
+            @Suppress("DEPRECATION")
+            location.isFromMockProvider
         }
     }
 }
