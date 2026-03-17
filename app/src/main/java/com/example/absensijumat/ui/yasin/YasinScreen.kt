@@ -132,9 +132,8 @@ fun YasinScreen(
                     modifier = Modifier.align(Alignment.Center),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    CircularProgressIndicator(color = ModernGreen, strokeWidth = 3.dp)
+                    CircularProgressIndicator(color = ModernGreen, strokeWidth = 4.dp)
                     Spacer(Modifier.height(16.dp))
-                    Text("Menyiapkan ayat...", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                 }
             } else if (errorMessage.isNotEmpty()) {
                 Column(
@@ -144,8 +143,7 @@ fun YasinScreen(
                     Text(errorMessage, color = Color.Red, textAlign = TextAlign.Center)
                     Button(
                         onClick = { viewModel.fetchYasin() },
-                        modifier = Modifier.padding(top = 16.dp),
-                        shape = RoundedCornerShape(12.dp)
+                        modifier = Modifier.padding(top = 16.dp)
                     ) {
                         Icon(Icons.Default.Refresh, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
