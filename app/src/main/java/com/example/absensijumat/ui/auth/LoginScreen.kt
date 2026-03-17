@@ -1,10 +1,13 @@
 package com.example.absensijumat.ui.auth
 
+import android.util.Patterns
 import com.example.absensijumat.R
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -20,9 +23,11 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,127 +57,202 @@ fun LoginScreen(
     val context = LocalContext.current
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
 
-    Column(
+
+    val primaryEmerald = Color(0xFF10B981)
+    val lightBg = Color(0xFFF8FAFC)
+
+    Box(
         modifier = modifier
-            .fillMaxWidth()
-            .background(Color.White)
-            .padding(horizontal = 18.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .fillMaxSize()
+            .background(lightBg)
     ) {
-        Spacer(modifier = Modifier.height(100.dp))
-
-        Surface(
-            modifier = Modifier.height(120.dp),
-            shape = RoundedCornerShape(24.dp),
-            color = Color.White,
-            shadowElevation = 3.dp
-        ) {
-            Image(
-                painter = painterResource(R.drawable.logo_sata),
-                contentDescription = null,
-                modifier = Modifier.padding(15.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Text(
-            text = "E-Presensi Jumat",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = Color(0xFF00796B)
-        )
-        Text(
-            text = "Silakan login untuk mulai presensi",
-            fontSize = 16.sp,
-            color = Color.Gray,
-            modifier = Modifier.padding(top = 8.dp)
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text(text = "Email") },
-            placeholder = { Text(text = "example@satamail.my.id") },
-            leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        var passwordVisible by remember { mutableStateOf(false) }
-
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text(text = "Password") },
-            placeholder = { Text(text = "*******") },
-            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-
-            trailingIcon = {
-                val image = if (passwordVisible)
-                    painterResource(R.drawable.eye_svgrepo_com)
-                else
-                    painterResource(R.drawable.eye_slash_svgrepo_com)
-
-                val description = if (passwordVisible) "Hide password" else "Show password"
-
-                IconButton(onClick = { passwordVisible = !passwordVisible },modifier = modifier.size(24.dp)) {
-                    Icon(painter = image, contentDescription = description)
-                }
-            },
-
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        if (viewModel.errorMessage.isNotEmpty()) {
-            Text(
-                text = viewModel.errorMessage,
-                color = Color.Red,
-                fontSize = 14.sp,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(35.dp))
-
-        Button(
-            onClick = {
-                viewModel.LoginRequest(email, password, context) {token ->
-                    onLoginSuccess(token)
-                }
-            },
-            modifier = Modifier.fillMaxWidth().height(50.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00796B)),
-            enabled = !viewModel.isLoading
-        ) {
-            if (viewModel.isLoading) {
-                CircularProgressIndicator(
-                    color = Color.White,
-                    modifier = Modifier.size(24.dp),
-                    strokeWidth = 2.dp
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(260.dp)
+                .background(
+                    brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                        colors = listOf(primaryEmerald, lightBg)
+                    ),
+                    alpha = 0.1f
                 )
-            } else {
-                Text(
-                    text = "Masuk",
-                    fontSize = 16.sp,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(80.dp))
+
+            // Logo Section
+            Surface(
+                modifier = Modifier.size(100.dp),
+                shape = RoundedCornerShape(28.dp),
+                color = Color.White,
+                shadowElevation = 8.dp
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.logo_sata),
+                    contentDescription = "Logo SMK",
+                    modifier = Modifier.padding(20.dp)
                 )
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Title Section
+            Text(
+                text = "E-Presensi",
+                fontSize = 32.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color(0xFF1E293B),
+                letterSpacing = (-1).sp
+            )
+            Text(
+                text = "SMKN TENGARAN",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = primaryEmerald,
+                letterSpacing = 2.sp
+            )
+
+            Spacer(modifier = Modifier.height(48.dp))
+
+            // Input Section
+            Text(
+                text = "Silakan masuk ke akun Anda",
+                modifier = Modifier.align(Alignment.Start),
+                fontSize = 14.sp,
+                color = Color.Gray,
+                fontWeight = FontWeight.Medium
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            val isEmailError by remember {
+                derivedStateOf {
+                    email.isNotEmpty() && !Patterns.EMAIL_ADDRESS.matcher(email).matches()
+                }
+            }
+
+
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
+                isError = isEmailError,
+                supportingText = {
+                    if (isEmailError) {
+                        Text(
+                            text = "Format email tidak valid (contoh: user.p12345@satamail.my.id)",
+                            color = Color.Red
+                        )
+                    }
+                },
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Email,
+                        contentDescription = null,
+                        tint = if (isEmailError) Color.Red else primaryEmerald
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = primaryEmerald,
+                    errorBorderColor = Color.Red,
+                    errorLabelColor = Color.Red,
+                    errorCursorColor = Color.Red
+                ),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                singleLine = true
+            )
+
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                leadingIcon = {
+                    Icon(Icons.Default.Lock, contentDescription = null, tint = primaryEmerald)
+                },
+                trailingIcon = {
+                    val image = if (passwordVisible)
+                        painterResource(R.drawable.eye_svgrepo_com)
+                    else
+                        painterResource(R.drawable.eye_slash_svgrepo_com)
+
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(painter = image, contentDescription = null, modifier = Modifier.size(20.dp))
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = primaryEmerald,
+                    focusedLabelColor = primaryEmerald,
+                    cursorColor = primaryEmerald
+                ),
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                singleLine = true
+            )
+
+            // Error Message
+            if (viewModel.errorMessage.isNotEmpty()) {
+                Text(
+                    text = viewModel.errorMessage,
+                    color = Color.Red,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(top = 8.dp).align(Alignment.Start)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            // Login Button
+            Button(
+                onClick = {
+                    viewModel.LoginRequest(email, password, context) { token ->
+                        onLoginSuccess(token)
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = primaryEmerald),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp),
+                enabled = !viewModel.isLoading
+            ) {
+                if (viewModel.isLoading) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 3.dp
+                    )
+                } else {
+                    Text(
+                        text = "Login",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // Footer
+            Text(
+                text = "© 2026  RPL SMKN Tengaran",
+                fontSize = 11.sp,
+                color = Color.LightGray,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
         }
     }
 }
