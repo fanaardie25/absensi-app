@@ -74,18 +74,6 @@ fun YasinScreen(
                         }
                     }
                 },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        viewModel.stopAudio()
-                        onBackClick()
-                    }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack, 
-                            contentDescription = "Back", 
-                            tint = Color(0xFF2D3436)
-                        )
-                    }
-                },
                 actions = {
                     if (yasin != null) {
                         val audioUrl = yasin.audioFull["06"] ?: yasin.audioFull.values.firstOrNull()

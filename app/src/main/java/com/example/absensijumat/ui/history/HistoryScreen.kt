@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.absensijumat.BuildConfig
 import com.example.absensijumat.response.AttendanceDataAll
 import com.example.absensijumat.ui.theme.AbsensiJumatTheme
 
@@ -135,7 +136,7 @@ fun HistoryItem(data: AttendanceDataAll) {
         ) {
             // Photo
             AsyncImage(
-                model = "http://192.168.1.6:8000/storage/${data.photo_path}",
+                model = "${BuildConfig.BASE_STORAGE}${data.photo_path}",
                 modifier = Modifier
                     .size(64.dp)
                     .clip(RoundedCornerShape(12.dp)),
