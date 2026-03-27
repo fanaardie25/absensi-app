@@ -23,6 +23,9 @@ class ProfileViewModel(): ViewModel() {
     var isLoading by mutableStateOf(false)
     var errorMessage by mutableStateOf("")
 
+    fun clearError() {
+        errorMessage = ""
+    }
 
     fun fetchProfile(context: Context){
         val sessionManager = SessionManager(context)

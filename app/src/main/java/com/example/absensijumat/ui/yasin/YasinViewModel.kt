@@ -23,6 +23,10 @@ class YasinViewModel : ViewModel() {
     var isPlaying by mutableStateOf(false)
     var currentlyPlayingAyat by mutableIntStateOf(-1) // 0 untuk full audio, 1+ untuk nomor ayat
 
+    fun clearError() {
+        errorMessage = ""
+    }
+
     fun fetchYasin() {
         isLoading = true
         errorMessage = ""

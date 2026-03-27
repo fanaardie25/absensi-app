@@ -46,6 +46,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.absensijumat.ui.components.ErrorDialog
 import com.example.absensijumat.ui.theme.AbsensiJumatTheme
 
 @Composable
@@ -62,6 +63,21 @@ fun LoginScreen(
 
     val primaryEmerald = Color(0xFF10B981)
     val lightBg = Color(0xFFF8FAFC)
+
+    // Modal Error Modern
+    ErrorDialog(
+        errorMessage = viewModel.errorMessage,
+        onDismiss = { viewModel.clearError() }
+    )
+
+    // Logika Validasi Button
+    val isEmailValid by remember {
+        derivedStateOf { Patterns.EMAIL_ADDRESS.matcher(email).matches() }
+    }
+    
+    val isButtonEnabled by remember {
+        derivedStateOf { isEmailValid && password.isNotEmpty() && !viewModel.isLoading }
+    }
 
     Box(
         modifier = modifier
@@ -135,7 +151,7 @@ fun LoginScreen(
 
             val isEmailError by remember {
                 derivedStateOf {
-                    email.isNotEmpty() && !Patterns.EMAIL_ADDRESS.matcher(email).matches()
+                    email.isNotEmpty() && !isEmailValid
                 }
             }
 
@@ -148,7 +164,7 @@ fun LoginScreen(
                 supportingText = {
                     if (isEmailError) {
                         Text(
-                            text = "Format email tidak valid (contoh: user.p12345@satamail.my.id)",
+                            text = "Format email tidak valid",
                             color = Color.Red
                         )
                     }
@@ -201,16 +217,6 @@ fun LoginScreen(
                 singleLine = true
             )
 
-            // Error Message
-            if (viewModel.errorMessage.isNotEmpty()) {
-                Text(
-                    text = viewModel.errorMessage,
-                    color = Color.Red,
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(top = 8.dp).align(Alignment.Start)
-                )
-            }
-
             Spacer(modifier = Modifier.height(40.dp))
 
             // Login Button
@@ -224,9 +230,12 @@ fun LoginScreen(
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = primaryEmerald),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = primaryEmerald,
+                    disabledContainerColor = primaryEmerald.copy(alpha = 0.5f) // Warna pudar saat disable
+                ),
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp),
-                enabled = !viewModel.isLoading
+                enabled = isButtonEnabled
             ) {
                 if (viewModel.isLoading) {
                     CircularProgressIndicator(

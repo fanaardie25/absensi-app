@@ -20,6 +20,10 @@ class HistoryViewModel(): ViewModel() {
     var activityList by mutableStateOf<List<AttendanceDataAll>>(emptyList())
     var isLoading by mutableStateOf(false)
     var errorMessage by mutableStateOf("")   
+
+    fun clearError() {
+        errorMessage = ""
+    }
     
     fun getAllActivity(context: Context){
         val sessionManager = SessionManager(context)

@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.absensijumat.R
 import com.example.absensijumat.response.Ayat
+import com.example.absensijumat.ui.components.ErrorDialog
 import com.example.absensijumat.ui.home.DarkEmerald
 import com.example.absensijumat.ui.home.ModernGreen
 import com.example.absensijumat.ui.theme.AbsensiJumatTheme
@@ -50,6 +51,12 @@ fun YasinScreen(
     LaunchedEffect(Unit) {
         viewModel.fetchYasin()
     }
+
+    // Modal Error Modern
+    ErrorDialog(
+        errorMessage = errorMessage,
+        onDismiss = { viewModel.clearError() }
+    )
 
     Scaffold(
         containerColor = Color(0xFFF8FAF9),
@@ -122,21 +129,6 @@ fun YasinScreen(
                 ) {
                     CircularProgressIndicator(color = ModernGreen, strokeWidth = 4.dp)
                     Spacer(Modifier.height(16.dp))
-                }
-            } else if (errorMessage.isNotEmpty()) {
-                Column(
-                    modifier = Modifier.align(Alignment.Center),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(errorMessage, color = Color.Red, textAlign = TextAlign.Center)
-                    Button(
-                        onClick = { viewModel.fetchYasin() },
-                        modifier = Modifier.padding(top = 16.dp)
-                    ) {
-                        Icon(Icons.Default.Refresh, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Coba Lagi")
-                    }
                 }
             } else if (yasin != null) {
                 LazyColumn(

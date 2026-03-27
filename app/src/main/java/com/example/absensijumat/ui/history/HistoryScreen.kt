@@ -26,6 +26,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.absensijumat.BuildConfig
 import com.example.absensijumat.response.AttendanceDataAll
+import com.example.absensijumat.ui.components.ErrorDialog
 import com.example.absensijumat.ui.theme.AbsensiJumatTheme
 
 // Warna konsisten dengan Home
@@ -44,6 +45,12 @@ fun HistoryScreen(modifier: Modifier = Modifier, viewModel: HistoryViewModel = v
     LaunchedEffect(Unit) {
         viewModel.getAllActivity(context)
     }
+
+    // Modal Error Modern
+    ErrorDialog(
+        errorMessage = errorMessage,
+        onDismiss = { viewModel.clearError() }
+    )
 
     Scaffold(
         containerColor = LightBg,
@@ -73,21 +80,6 @@ fun HistoryScreen(modifier: Modifier = Modifier, viewModel: HistoryViewModel = v
                     modifier = Modifier.align(Alignment.Center),
                     color = ModernGreen
                 )
-            } else if (errorMessage.isNotEmpty()) {
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(text = errorMessage, color = Color.Red)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(onClick = { viewModel.getAllActivity(context) }) {
-                        Icon(Icons.Default.Refresh, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Coba Lagi")
-                    }
-                }
             } else {
                 Column(
                     modifier = Modifier

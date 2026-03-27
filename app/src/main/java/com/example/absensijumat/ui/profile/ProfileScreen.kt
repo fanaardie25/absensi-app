@@ -46,6 +46,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import com.example.absensijumat.ui.components.ErrorDialog
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -98,6 +99,12 @@ fun ProfileScreen(
         viewModel.fetchProfile(context) 
     }
 
+    // Modal Error Modern
+    ErrorDialog(
+        errorMessage = viewModel.errorMessage,
+        onDismiss = { viewModel.clearError() }
+    )
+
     Scaffold(
         modifier = modifier,
         containerColor = LightBg,
@@ -119,7 +126,6 @@ fun ProfileScreen(
     ) { innerPadding ->
         val profile = viewModel.profileData
         val isLoading = viewModel.isLoading
-        val errorMessage = viewModel.errorMessage
 
         Box(
             modifier = Modifier
@@ -131,21 +137,6 @@ fun ProfileScreen(
                     modifier = Modifier.align(Alignment.Center),
                     color = ModernGreen
                 )
-            } else if (errorMessage.isNotEmpty()) {
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(text = errorMessage, color = Color.Red, style = MaterialTheme.typography.bodyMedium)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(onClick = { viewModel.fetchProfile(context) }) {
-                        Icon(Icons.Default.Refresh, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Coba Lagi")
-                    }
-                }
             } else if (profile != null) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),

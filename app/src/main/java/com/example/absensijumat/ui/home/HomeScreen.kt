@@ -49,6 +49,7 @@ import com.example.absensijumat.MainActivity
 import com.example.absensijumat.R
 import com.example.absensijumat.response.AttendanceData
 import com.example.absensijumat.response.LatestActivityResponse
+import com.example.absensijumat.ui.components.ErrorDialog
 import com.example.absensijumat.ui.theme.AbsensiJumatTheme
 import com.google.firebase.messaging.FirebaseMessaging
 
@@ -137,6 +138,12 @@ fun Home(
         viewModel.getLatestActivity(context)
     }
 
+    // Modal Error Modern
+    ErrorDialog(
+        errorMessage = errorMessage,
+        onDismiss = { viewModel.clearError() }
+    )
+
     Scaffold(
         containerColor = LightBg,
         topBar = {
@@ -189,21 +196,6 @@ fun Home(
                     modifier = Modifier.align(Alignment.Center),
                     color = ModernGreen
                 )
-            } else if (errorMessage.isNotEmpty()) {
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(text = errorMessage, color = Color.Red)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(onClick = { viewModel.getCurrentUser(context) }) {
-                        Icon(Icons.Default.Refresh, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Coba Lagi")
-                    }
-                }
             } else {
                 LazyColumn(
                     modifier = modifier

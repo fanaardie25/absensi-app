@@ -35,6 +35,9 @@ class HomeViewModel(): ViewModel() {
 
     var activityData by mutableStateOf<AttendanceData?>(null)
 
+    fun clearError() {
+        errorMessage = ""
+    }
 
     @SuppressLint("MissingPermission")
     fun getCurrentLocation(context: Context, onSuccess: (Double, Double) -> Unit) {

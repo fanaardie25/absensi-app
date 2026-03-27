@@ -17,6 +17,10 @@ class LoginViewModel: ViewModel() {
     var isLoading by mutableStateOf(false)
     var errorMessage by mutableStateOf("")
 
+    fun clearError() {
+        errorMessage = ""
+    }
+
     fun LoginRequest(email: String, password: String,onContext: Context, onSuccess: (String) -> Unit) {
         if (email.isEmpty() || password.isEmpty()) {
             errorMessage = "Email atau password tidak boleh kosong"
