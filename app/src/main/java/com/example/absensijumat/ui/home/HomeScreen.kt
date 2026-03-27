@@ -34,6 +34,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -172,14 +173,16 @@ fun Home(
                         contentAlignment = Alignment.Center
                     ) {
                         val photoUrl = userData?.profile_photo_path
-                            AsyncImage(
-                                model = "${BuildConfig.BASE_STORAGE}${photoUrl}",
-                                contentDescription = "Profile Picture",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize(),
-                                error = painterResource(R.drawable.dummy_profile),
-                                placeholder = painterResource(R.drawable.dummy_profile),
-                            )
+                        val placeholderPainter = rememberVectorPainter(Icons.Default.Person)
+
+                        AsyncImage(
+                            model = "${BuildConfig.BASE_STORAGE}${photoUrl}",
+                            contentDescription = "Profile Picture",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize(),
+                            error = placeholderPainter,
+                            placeholder = placeholderPainter,
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = LightBg)

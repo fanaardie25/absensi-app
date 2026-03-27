@@ -158,17 +158,34 @@ fun ProfileScreen(
                                 modifier = Modifier.size(100.dp),
                                 contentAlignment = Alignment.BottomEnd
                             ) {
-                                AsyncImage(
-                                    model = "${BuildConfig.BASE_STORAGE}${profile.profile_photo_path}",
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .clip(CircleShape)
-                                        .border(2.dp, Color.White, CircleShape),
-                                    contentDescription = "Foto Profil",
-                                    error = painterResource(R.drawable.dummy_profile),
-                                    placeholder = painterResource(R.drawable.dummy_profile),
-                                    contentScale = ContentScale.Crop
-                                )
+                                if (profile.profile_photo_path.isEmpty()) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clip(CircleShape)
+                                            .background(Color.LightGray.copy(alpha = 0.2f)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Person,
+                                            contentDescription = "Default Profile",
+                                            tint = ModernGreen,
+                                            modifier = Modifier.size(64.dp)
+                                        )
+                                    }
+                                } else {
+                                    AsyncImage(
+                                        model = "${BuildConfig.BASE_STORAGE}${profile.profile_photo_path}",
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clip(CircleShape)
+                                            .border(2.dp, Color.White, CircleShape),
+                                        contentDescription = "Foto Profil",
+                                        error = painterResource(R.drawable.dummy_profile),
+                                        placeholder = painterResource(R.drawable.dummy_profile),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
 
                                 Box(
                                     modifier = Modifier
