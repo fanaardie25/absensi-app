@@ -153,6 +153,7 @@ fun Home(
                 viewModel.submitPermission(context, sId, status, desc, file) {
                     showPermissionDialog = false
                     Toast.makeText(context, "Pengajuan $status Berhasil dikirim!", Toast.LENGTH_SHORT).show()
+                    // Refresh data home
                     viewModel.getCurrentUser(context)
                     viewModel.getLatestActivity(context)
                 }
@@ -311,6 +312,7 @@ fun Home(
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 val hasSchedule = userData?.is_schedule_open == true
                                 val isDone = userData?.is_absent_today == true
+                                val isInactive = !hasSchedule || isDone
 
                                 Surface(
                                     onClick = {
@@ -339,10 +341,10 @@ fun Home(
                                     },
                                     modifier = Modifier
                                         .size(140.dp)
-                                        .shadow(24.dp, CircleShape, spotColor = ModernGreen),
+                                        .shadow(24.dp, CircleShape, spotColor = if (isInactive) Color.Gray else ModernGreen),
                                     shape = CircleShape,
                                     color = Color.White,
-                                    border = BorderStroke(8.dp, ModernGreen.copy(alpha = 0.1f))
+                                    border = BorderStroke(8.dp, (if (isInactive) Color.Gray else ModernGreen).copy(alpha = 0.1f))
                                 ) {
                                     Box(
                                         contentAlignment = Alignment.Center,
@@ -354,7 +356,7 @@ fun Home(
                                                 .clip(CircleShape)
                                                 .background(
                                                     Brush.radialGradient(
-                                                        colors = listOf(ModernGreen, DarkEmerald)
+                                                        colors = if (isInactive) listOf(Color.Gray, Color.DarkGray) else listOf(ModernGreen, DarkEmerald)
                                                     )
                                                 ),
                                             contentAlignment = Alignment.Center
@@ -370,12 +372,12 @@ fun Home(
                                 }
                                 Spacer(Modifier.height(16.dp))
                                 Text(
-                                    "TAP UNTUK MULAI ABSEN",
+                                    if (isDone) "KAMU SUDAH ABSEN" else if (!hasSchedule) "TIDAK ADA JADWAL" else "TAP UNTUK MULAI ABSEN",
                                     style = MaterialTheme.typography.titleMedium.copy(
                                         fontWeight = FontWeight.Black,
                                         letterSpacing = 1.sp
                                     ),
-                                    color = ModernGreen
+                                    color = if (isInactive) Color.Gray else ModernGreen
                                 )
                                 
                                 Spacer(modifier = Modifier.height(12.dp))
@@ -390,8 +392,8 @@ fun Home(
                                         }
                                     },
                                     shape = RoundedCornerShape(12.dp),
-                                    border = BorderStroke(1.dp, ModernGreen),
-                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ModernGreen)
+                                    border = BorderStroke(1.dp, if (isInactive) Color.Gray else ModernGreen),
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = if (isInactive) Color.Gray else ModernGreen)
                                 ) {
                                     Icon(Icons.Default.Email, contentDescription = null, modifier = Modifier.size(18.dp))
                                     Spacer(modifier = Modifier.width(8.dp))
