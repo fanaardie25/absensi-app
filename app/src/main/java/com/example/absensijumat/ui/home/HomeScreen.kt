@@ -3,6 +3,7 @@ package com.example.absensijumat.ui.home
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -13,16 +14,12 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyItemScope
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
@@ -42,17 +39,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.absensijumat.BuildConfig
 import com.example.absensijumat.MainActivity
 import com.example.absensijumat.R
-import com.example.absensijumat.response.AttendanceData
-import com.example.absensijumat.response.LatestActivityResponse
 import com.example.absensijumat.ui.components.ErrorDialog
 import com.example.absensijumat.ui.theme.AbsensiJumatTheme
 import com.google.firebase.messaging.FirebaseMessaging
+import java.io.File
 
 
 val ModernGreen = Color(0xFF00A36C)
@@ -72,16 +71,16 @@ fun Home(
     val isLoading = viewModel.isLoading
     val errorMessage = viewModel.errorMessage
 
-    var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var latitude by remember { mutableDoubleStateOf(0.0) }
     var longitude by remember { mutableDoubleStateOf(0.0) }
     var scheduleId by remember { mutableIntStateOf(0) }
+    
+    var showPermissionDialog by remember { mutableStateOf(false) }
 
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
     ) { bitmap ->
         if (bitmap != null) {
-            imageBitmap = bitmap
             scheduleId = userData?.schedule_id ?:   0
 
             viewModel.submitAttendance(
@@ -145,12 +144,28 @@ fun Home(
         onDismiss = { viewModel.clearError() }
     )
 
+    if (showPermissionDialog) {
+        PermissionDialog(
+            isLoading = isLoading,
+            onDismiss = { if (!isLoading) showPermissionDialog = false },
+            onSubmit = { status, desc, file ->
+                val sId = userData?.schedule_id ?: 0
+                viewModel.submitPermission(context, sId, status, desc, file) {
+                    showPermissionDialog = false
+                    Toast.makeText(context, "Pengajuan $status Berhasil dikirim!", Toast.LENGTH_SHORT).show()
+                    viewModel.getCurrentUser(context)
+                    viewModel.getLatestActivity(context)
+                }
+            }
+        )
+    }
+
     Scaffold(
         containerColor = LightBg,
         topBar = {
             TopAppBar(
                 title = {
-                    Column() {
+                    Column {
                         Text(
                             "SMKN Tengaran",
                             style = MaterialTheme.typography.titleSmall.copy(
@@ -194,7 +209,7 @@ fun Home(
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
-            if (isLoading) {
+            if (isLoading && !showPermissionDialog) { // Jangan tampilkan loader tengah kalau sedang di dialog izin
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center),
                     color = ModernGreen
@@ -300,19 +315,16 @@ fun Home(
                                 Surface(
                                     onClick = {
                                         if (hasSchedule && !isDone) {
-                                            // Cek apakah semua izin sudah dikasih
                                             val hasCamera = ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
                                             val hasLocation = ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
 
                                             if (hasCamera && hasLocation) {
-                                                // Kasus: Izin udah aman semua
                                                 viewModel.getCurrentLocation(context) { lat, lon ->
                                                     latitude = lat
                                                     longitude = lon
                                                     cameraLauncher.launch(null)
                                                 }
                                             } else {
-                                                // Kasus: Ada yang kurang, minta semua sekaligus
                                                 requestPermissionsLauncher.launch(
                                                     arrayOf(
                                                         android.Manifest.permission.CAMERA,
@@ -365,6 +377,26 @@ fun Home(
                                     ),
                                     color = ModernGreen
                                 )
+                                
+                                Spacer(modifier = Modifier.height(12.dp))
+                                
+                                // Tombol Izin / Sakit
+                                OutlinedButton(
+                                    onClick = { 
+                                        if (hasSchedule && !isDone) {
+                                            showPermissionDialog = true 
+                                        } else {
+                                            Toast.makeText(context, "Tidak ada jadwal aktif", Toast.LENGTH_SHORT).show()
+                                        }
+                                    },
+                                    shape = RoundedCornerShape(12.dp),
+                                    border = BorderStroke(1.dp, ModernGreen),
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ModernGreen)
+                                ) {
+                                    Icon(Icons.Default.Email, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Ajukan Izin / Sakit", fontWeight = FontWeight.Bold)
+                                }
                             }
                         }
                     }
@@ -412,6 +444,164 @@ fun Home(
                         item {
                             Text("Belum ada aktivitas", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PermissionDialog(
+    isLoading: Boolean,
+    onDismiss: () -> Unit,
+    onSubmit: (status: String, description: String, file: File) -> Unit
+) {
+    val context = LocalContext.current
+    var selectedStatus by remember { mutableStateOf("sakit") }
+    var description by remember { mutableStateOf("") }
+    
+    var photoFile by remember { mutableStateOf<File?>(null) }
+    var capturedUri by remember { mutableStateOf<Uri?>(null) }
+    var showPreview by remember { mutableStateOf(false) }
+    
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            showPreview = true
+        } else {
+            showPreview = false
+            photoFile = null
+            capturedUri = null
+        }
+    }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnBackPress = !isLoading,
+            dismissOnClickOutside = !isLoading
+        )
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .padding(16.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    "Pengajuan Izin / Sakit",
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Toggle Sakit / Izin
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFFF1F2F6))
+                        .padding(4.dp)
+                ) {
+                    listOf("sakit", "izin").forEach { status ->
+                        val isSelected = selectedStatus == status
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(if (isSelected) ModernGreen else Color.Transparent)
+                                .clickable(enabled = !isLoading) { selectedStatus = status }
+                                .padding(vertical = 10.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = status.uppercase(),
+                                color = if (isSelected) Color.White else Color.Gray,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Keterangan") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    minLines = 3,
+                    enabled = !isLoading
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Photo Area
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFFF1F2F6))
+                        .clickable(enabled = !isLoading) { 
+                            val file = File(context.cacheDir, "temp_permission_${System.currentTimeMillis()}.jpg")
+                            val uri = FileProvider.getUriForFile(
+                                context,
+                                "${context.packageName}.fileprovider",
+                                file
+                            )
+                            photoFile = file
+                            capturedUri = uri
+                            showPreview = false
+                            cameraLauncher.launch(uri)
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (showPreview && photoFile != null) {
+                        AsyncImage(
+                            model = photoFile,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(painterResource(R.drawable.camera_add_svgrepo_com), contentDescription = null, modifier = Modifier.size(32.dp), tint = Color.Gray)
+                            Text("Ambil Foto Bukti", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    onClick = {
+                        if (description.isNotEmpty() && photoFile != null) {
+                            onSubmit(selectedStatus, description, photoFile!!)
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = ModernGreen),
+                    enabled = !isLoading && description.isNotEmpty() && showPreview && photoFile != null
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Kirim Pengajuan", fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -475,7 +665,12 @@ fun ModernActivityItem(date: String?,status: String) {
                     .background(ModernGreen.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.CheckCircle, contentDescription = null, tint = ModernGreen)
+                val icon = when(status) {
+                    "hadir" -> Icons.Default.CheckCircle
+                    "sakit", "izin" -> Icons.Default.Email
+                    else -> Icons.Default.Warning
+                }
+                Icon(icon, contentDescription = null, tint = ModernGreen)
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column {
@@ -483,6 +678,7 @@ fun ModernActivityItem(date: String?,status: String) {
                     "hadir" -> "Hadir"
                     "tidak_hadir" -> "Tidak Hadir"
                     "izin" -> "Izin"
+                    "sakit" -> "Sakit"
                     else -> "Status Tidak Diketahui"
                 }
                 Text(

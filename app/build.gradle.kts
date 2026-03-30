@@ -20,8 +20,8 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "BASE_URL", "\"http://192.168.1.7:8000/api/\"")
-            buildConfigField("String", "BASE_STORAGE", "\"http://192.168.1.7:8000/storage/\"")
+            buildConfigField("String", "BASE_URL", "\"http://192.168.1.9:8000/api/\"")
+            buildConfigField("String", "BASE_STORAGE", "\"http://192.168.1.9:8000/storage/\"")
         }
         release {
             buildConfigField("String", "BASE_URL", "\"https://sata.sch.id/api/\"")

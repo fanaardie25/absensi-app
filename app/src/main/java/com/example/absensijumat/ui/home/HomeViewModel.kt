@@ -6,7 +6,6 @@ import android.graphics.Bitmap
 import android.location.Location
 import android.util.Log
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -70,7 +69,6 @@ class HomeViewModel(): ViewModel() {
         isLoading = true
         val bearer = "Bearer $token"
 
-        // 1. Ubah Bitmap ke File
         val file = File(context.cacheDir, "attendance_image.jpg")
         val os = FileOutputStream(file)
         bitmap.compress(Bitmap.CompressFormat.JPEG, 80, os)
@@ -79,7 +77,6 @@ class HomeViewModel(): ViewModel() {
 
         val requestFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
         val imagePart = MultipartBody.Part.createFormData("photo", file.name, requestFile)
-
 
         val idBody = scheduleId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
         val latBody = latitude.toString().toRequestBody("text/plain".toMediaTypeOrNull())
@@ -91,11 +88,9 @@ class HomeViewModel(): ViewModel() {
                     isLoading = false
                     if (response.isSuccessful)
                     {
-                        Log.d("success",response.isSuccessful.toString())
                         onAttendanceSuccess()
                     } else {
                         val errorJsonString = response.errorBody()?.string()
-                        Log.d("AttendanceResponse", "Error Body: $errorJsonString")
                         val errorMessageFromServer = try {
                             val jsonObject = JSONObject(errorJsonString)
                             jsonObject.getString("message")
@@ -108,6 +103,52 @@ class HomeViewModel(): ViewModel() {
                 override fun onFailure(call: Call<Void>, t: Throwable) {
                     isLoading = false
                     errorMessage = t.message ?: "Error"
+                }
+            })
+    }
+
+    fun submitPermission(
+        context: Context,
+        scheduleId: Int,
+        status: String,
+        description: String,
+        file: File,
+        onSuccess: () -> Unit
+    ) {
+        val sessionManager = SessionManager(context)
+        val token = sessionManager.fetchAuthToken() ?: return
+
+        isLoading = true
+        val bearer = "Bearer $token"
+
+        val requestFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
+        val imagePart = MultipartBody.Part.createFormData("photo", file.name, requestFile)
+
+        val idBody = scheduleId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+        val statusBody = status.toRequestBody("text/plain".toMediaTypeOrNull())
+        val descBody = description.toRequestBody("text/plain".toMediaTypeOrNull())
+
+        RetrofitClient.instance.submitPermission(bearer, idBody, statusBody, descBody, imagePart)
+            .enqueue(object : Callback<Void> {
+                override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                    isLoading = false
+                    if (response.isSuccessful) {
+                        onSuccess()
+                    } else {
+                        val errorJsonString = response.errorBody()?.string()
+                        val errorMessageFromServer = try {
+                            val jsonObject = JSONObject(errorJsonString.toString())
+                            jsonObject.getString("message")
+                        } catch (e: Exception) {
+                            "Gagal Izin: ${response.code()}"
+                        }
+                        errorMessage = errorMessageFromServer
+                    }
+                }
+
+                override fun onFailure(call: Call<Void>, t: Throwable) {
+                    isLoading = false
+                    errorMessage = t.message ?: "Koneksi Error"
                 }
             })
     }
@@ -129,7 +170,6 @@ class HomeViewModel(): ViewModel() {
                 response: Response<ProfileResponse?>
             ) {
                 isLoading = false
-                Log.d("AttendanceResponse", "KODE ASLI: ${response.code()}")
                 if (response.isSuccessful){
                     val body = response.body()
                     if(body != null){
