@@ -32,6 +32,12 @@ interface ApiService {
         @Header("Authorization") token: String
     ): Call<Void>
 
+    @POST("auth/change-password")
+    fun changePassword(
+        @Header("Authorization") token: String,
+        @Body params: Map<String, String>
+    ): Call<Void>
+
     @Multipart
     @Headers("Accept: application/json")
     @POST("attendance")

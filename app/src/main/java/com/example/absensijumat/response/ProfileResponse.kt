@@ -16,7 +16,8 @@ data class ProfileResponse(
     val teacher: String?,
     val is_schedule_open: Boolean,
     val is_absent_today: Boolean,
-    val stats: Stats
+    val stats: Stats,
+    val must_change_password: Boolean
 )
 
 data class SchoolClass(

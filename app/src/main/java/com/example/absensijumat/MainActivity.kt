@@ -31,16 +31,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.absensijumat.ui.auth.ChangePasswordScreen
 import com.example.absensijumat.ui.auth.LoginScreen
 import com.example.absensijumat.ui.fakegps.FakeGpsScreen
 import com.example.absensijumat.ui.history.HistoryScreen
 import com.example.absensijumat.ui.home.Home
+import com.example.absensijumat.ui.home.HomeViewModel
 import com.example.absensijumat.ui.profile.ProfileScreen
 import com.example.absensijumat.ui.theme.AbsensiJumatTheme
 import com.example.absensijumat.ui.yasin.YasinScreen
@@ -142,98 +146,119 @@ class MainActivity : ComponentActivity() {
 fun AbsensiJumatApp() {
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
     val primaryColor = Color(0xFF00A36C)
+    val context = LocalContext.current
+    val viewModel: HomeViewModel = viewModel()
+    
+    var showChangePassword by remember { mutableStateOf(false) }
 
-    Scaffold(
-        bottomBar = {
-            // Melayang (Floating) Bottom Navigation dengan Animasi
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 20.dp)
-                    .navigationBarsPadding()
-            ) {
-                Surface(
+    LaunchedEffect(Unit) {
+        viewModel.getCurrentUser(context)
+    }
+
+    LaunchedEffect(viewModel.userData) {
+        if (viewModel.userData?.must_change_password == true) {
+            showChangePassword = true
+        }
+    }
+
+    if (showChangePassword) {
+        ChangePasswordScreen(onSuccess = {
+            showChangePassword = false
+            viewModel.getCurrentUser(context)
+        })
+    } else {
+        Scaffold(
+            bottomBar = {
+                // Melayang (Floating) Bottom Navigation dengan Animasi
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(72.dp)
-                        .shadow(5.dp, RoundedCornerShape(24.dp), spotColor = primaryColor),
-                    shape = RoundedCornerShape(24.dp),
-                    color = Color.White,
-                    tonalElevation = 8.dp
+                        .padding(horizontal = 24.dp, vertical = 20.dp)
+                        .navigationBarsPadding()
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(72.dp)
+                            .shadow(5.dp, RoundedCornerShape(24.dp), spotColor = primaryColor),
+                        shape = RoundedCornerShape(24.dp),
+                        color = Color.White,
+                        tonalElevation = 8.dp
                     ) {
-                        AppDestinations.entries.forEach { destination ->
-                            val isSelected = currentDestination == destination
-                            
-                            // Animasi perubahan warna icon & background
-                            val iconColor by animateColorAsState(
-                                targetValue = if (isSelected) primaryColor else Color.Gray,
-                                animationSpec = tween(durationMillis = 300),
-                                label = "iconColor"
-                            )
+                        Row(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            AppDestinations.entries.forEach { destination ->
+                                val isSelected = currentDestination == destination
+                                
+                                // Animasi perubahan warna icon & background
+                                val iconColor by animateColorAsState(
+                                    targetValue = if (isSelected) primaryColor else Color.Gray,
+                                    animationSpec = tween(durationMillis = 300),
+                                    label = "iconColor"
+                                )
 
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .clickable { currentDestination = destination }
-                                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .clickable { currentDestination = destination }
+                                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(
-                                        painter = if (destination.iconVector != null) {
-                                            androidx.compose.ui.graphics.vector.rememberVectorPainter(destination.iconVector)
-                                        } else {
-                                            painterResource(id = destination.iconRes!!)
-                                        },
-                                        contentDescription = destination.label,
-                                        tint = iconColor,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                    
-                                    // Animasi teks muncul halus
-                                    AnimatedVisibility(
-                                        visible = isSelected,
-                                        enter = fadeIn() + expandVertically(),
-                                        exit = fadeOut() + shrinkVertically()
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center
                                     ) {
-                                        Text(
-                                            text = destination.label,
-                                            style = MaterialTheme.typography.labelSmall.copy(
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 10.sp
-                                            ),
-                                            color = primaryColor,
-                                            modifier = Modifier.padding(top = 2.dp)
+                                        Icon(
+                                            painter = if (destination.iconVector != null) {
+                                                androidx.compose.ui.graphics.vector.rememberVectorPainter(destination.iconVector)
+                                            } else {
+                                                painterResource(id = destination.iconRes!!)
+                                            },
+                                            contentDescription = destination.label,
+                                            tint = iconColor,
+                                            modifier = Modifier.size(24.dp)
                                         )
+                                        
+                                        // Animasi teks muncul halus
+                                        AnimatedVisibility(
+                                            visible = isSelected,
+                                            enter = fadeIn() + expandVertically(),
+                                            exit = fadeOut() + shrinkVertically()
+                                        ) {
+                                            Text(
+                                                text = destination.label,
+                                                style = MaterialTheme.typography.labelSmall.copy(
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 10.sp
+                                                ),
+                                                color = primaryColor,
+                                                modifier = Modifier.padding(top = 2.dp)
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
-            }
-        },
-        containerColor = Color(0xFFF8FAF9)
-    ) { innerPadding ->
-        Box(modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())) {
-            Crossfade(
-                targetState = currentDestination,
-                animationSpec = tween(durationMillis = 400),
-                label = "pageTransition"
-            ) { destination ->
-                when (destination) {
-                    AppDestinations.HOME -> Home()
-                    AppDestinations.JURNAL -> HistoryScreen()
-                    AppDestinations.YASIN -> YasinScreen(onBackClick = { currentDestination = AppDestinations.HOME })
-                    AppDestinations.PROFILE -> ProfileScreen()
+            },
+            containerColor = Color(0xFFF8FAF9)
+        ) { innerPadding ->
+            Box(modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())) {
+                Crossfade(
+                    targetState = currentDestination,
+                    animationSpec = tween(durationMillis = 400),
+                    label = "pageTransition"
+                ) { destination ->
+                    when (destination) {
+                        AppDestinations.HOME -> Home(viewModel = viewModel)
+                        AppDestinations.JURNAL -> HistoryScreen()
+                        AppDestinations.YASIN -> YasinScreen(onBackClick = { currentDestination = AppDestinations.HOME })
+                        AppDestinations.PROFILE -> ProfileScreen()
+                    }
                 }
             }
         }
