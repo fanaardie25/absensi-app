@@ -13,19 +13,19 @@ android {
         minSdk = 24
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         debug {
-            buildConfigField("String", "BASE_URL", "\"http://192.168.1.7:8000/api/\"")
-            buildConfigField("String", "BASE_STORAGE", "\"http://192.168.1.7:8000/storage/\"")
+            buildConfigField("String", "BASE_URL", "\"http://192.168.1.6:8000/api/\"")
+            buildConfigField("String", "BASE_STORAGE", "\"http://192.168.1.6:8000/storage/\"")
         }
         release {
-            buildConfigField("String", "BASE_URL", "\"https://sata.sch.id/api/\"")
-            buildConfigField("String", "BASE_STORAGE", "\"https://sata.sch.id/storage/\"")
+            buildConfigField("String", "BASE_URL", "\"http://siasata.rplxsata.com/api/\"")
+            buildConfigField("String", "BASE_STORAGE", "\"http://siasata.rplxsata.com/storage/\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

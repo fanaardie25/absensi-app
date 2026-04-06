@@ -32,11 +32,16 @@ class HomeViewModel(): ViewModel() {
     var userData by mutableStateOf<ProfileResponse?>(null)
     var isLoading by mutableStateOf(false)
     var errorMessage by mutableStateOf("")
+    var successMessage by mutableStateOf("")
 
     var activityData by mutableStateOf<AttendanceData?>(null)
 
     fun clearError() {
         errorMessage = ""
+    }
+
+    fun clearSuccess() {
+        successMessage = ""
     }
 
     @SuppressLint("MissingPermission")

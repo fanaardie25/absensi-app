@@ -139,7 +139,7 @@ fun HistoryItem(data: AttendanceDataAll) {
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "Masjid SMKN Tengaran",
+                    text = data.name,
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                     color = Color(0xFF2D3436)
                 )
@@ -159,6 +159,7 @@ fun HistoryItem(data: AttendanceDataAll) {
                     "hadir" -> ModernGreen.copy(alpha = 0.1f)
                     "tidak_hadir" -> Color.Red.copy(alpha = 0.1f)
                     "izin" -> Color.Yellow.copy(alpha = 0.1f)
+                    "sakit" -> Color.Yellow.copy(alpha = 0.1f)
                     else -> Color.Gray.copy(alpha = 0.1f)
                 },
                 shape = CircleShape
@@ -166,8 +167,9 @@ fun HistoryItem(data: AttendanceDataAll) {
                 Text(
                     text = when (data.status) {
                         "hadir" -> "Hadir"
-                        "tidak_hadir" -> "Tidak Hadir"
+                        "tidak_hadir" -> "Alpa"
                         "izin" -> "Izin"
+                        "sakit" -> "Sakit"
                         else -> "Status Tidak Diketahui"
                     },
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
@@ -176,6 +178,7 @@ fun HistoryItem(data: AttendanceDataAll) {
                         "hadir" -> ModernGreen
                         "tidak_hadir" -> Color.Red
                         "izin" -> Color(0xFFFFA000)
+                        "sakit" -> Color(0xFFFFA726)
                         else -> Color.Gray
                     }
                 )

@@ -18,7 +18,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
@@ -51,6 +53,7 @@ import com.example.absensijumat.R
 import com.example.absensijumat.response.AttendanceData
 import com.example.absensijumat.response.LatestActivityResponse
 import com.example.absensijumat.ui.components.ErrorDialog
+import com.example.absensijumat.ui.components.SuccessDialog
 import com.example.absensijumat.ui.theme.AbsensiJumatTheme
 import com.google.firebase.messaging.FirebaseMessaging
 
@@ -71,6 +74,10 @@ fun Home(
     val activityData = viewModel.activityData
     val isLoading = viewModel.isLoading
     val errorMessage = viewModel.errorMessage
+    val successMessage = viewModel.successMessage
+    val agendaName = userData?.agenda_name ?: "Kegiatan"
+    val startTime = userData?.start_absensi?.take(5) ?: "00:00"
+    val endTime = userData?.end_absensi?.take(5) ?: "00:00"
 
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var latitude by remember { mutableDoubleStateOf(0.0) }
@@ -91,11 +98,7 @@ fun Home(
                 latitude = latitude,
                 longtitude = longitude
             ) {
-                Toast.makeText(context, "Absen Berhasil!", Toast.LENGTH_SHORT).show()
-                val intent = Intent(context, MainActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                }
-                context.startActivity(intent)
+                viewModel.successMessage = "Absen Berhasil!"
             }
         }
     }
@@ -143,6 +146,18 @@ fun Home(
     ErrorDialog(
         errorMessage = errorMessage,
         onDismiss = { viewModel.clearError() }
+    )
+
+    // Modal Success Modern
+    SuccessDialog(
+        message = successMessage,
+        onDismiss = { 
+            viewModel.clearSuccess()
+            val intent = Intent(context, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+            context.startActivity(intent)
+        }
     )
 
     Scaffold(
@@ -245,6 +260,7 @@ fun Home(
                         ) {
                             Column {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
+                                    val hasSchedule = userData?.is_schedule_open == true
                                     Icon(
                                         Icons.Default.Star,
                                         contentDescription = null,
@@ -253,7 +269,7 @@ fun Home(
                                     )
                                     Spacer(Modifier.width(8.dp))
                                     Text(
-                                        "STATUS HARI INI",
+                                        text = if (hasSchedule) "JADWAL ${agendaName.uppercase()}" else "STATUS HARI INI",
                                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                                         color = Color.White.copy(alpha = 0.8f)
                                     )
@@ -265,8 +281,8 @@ fun Home(
                                 Text(
                                     text = when {
                                         !hasSchedule -> "Tidak Ada Jadwal Hari Ini"
-                                        isDone -> "Kamu Dapat Jadwal & Sudah Absen"
-                                        else -> "Kamu Dapat Jadwal, Yuk Absen Sekarang!"
+                                        isDone -> "Sudah Absen $agendaName"
+                                        else -> "Ada Jadwal $agendaName, Yuk Absen!"
                                     },
                                     style = MaterialTheme.typography.headlineSmall.copy(
                                         fontWeight = FontWeight.Bold,
@@ -277,9 +293,9 @@ fun Home(
                                 Spacer(Modifier.height(4.dp))
                                 Text(
                                     text = when{
-                                        !hasSchedule -> "Hari ini kamu tidak bisa absen"
-                                        isDone -> "jangan sampai terlambat ya"
-                                        else -> "jangan sampai lupa absen ya"
+                                        !hasSchedule -> "Tidak Ada Kegiatan Buat Kamu Hari Ini"
+                                        isDone -> "Mantap, kehadiranmu sudah tercatat!"
+                                        else -> "Batas absen: $startTime - $endTime WIB"
                                     },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = Color.White.copy(alpha = 0.7f)
@@ -297,22 +313,26 @@ fun Home(
                                 val hasSchedule = userData?.is_schedule_open == true
                                 val isDone = userData?.is_absent_today == true
 
+                                val isButtonEnabled = hasSchedule && !isDone
+
+                                val buttonMainColor = if (isButtonEnabled) ModernGreen else Color.Gray
+                                val buttonDarkColor = if (isButtonEnabled) DarkEmerald else Color(0xFF757575)
+                                val shadowColor = if (isButtonEnabled) ModernGreen else Color.Transparent
+
                                 Surface(
                                     onClick = {
-                                        if (hasSchedule && !isDone) {
+                                        if (isButtonEnabled) {
                                             // Cek apakah semua izin sudah dikasih
                                             val hasCamera = ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
                                             val hasLocation = ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
 
                                             if (hasCamera && hasLocation) {
-                                                // Kasus: Izin udah aman semua
                                                 viewModel.getCurrentLocation(context) { lat, lon ->
                                                     latitude = lat
                                                     longitude = lon
                                                     cameraLauncher.launch(null)
                                                 }
                                             } else {
-                                                // Kasus: Ada yang kurang, minta semua sekaligus
                                                 requestPermissionsLauncher.launch(
                                                     arrayOf(
                                                         android.Manifest.permission.CAMERA,
@@ -322,15 +342,16 @@ fun Home(
                                                 )
                                             }
                                         } else {
-                                            Toast.makeText(context, "Kamu Tidak Dapat Absen Hari Ini", Toast.LENGTH_SHORT).show()
+                                            val message = if (!hasSchedule) "Tidak Ada Jadwal Hari Ini" else "Anda Sudah Melakukan Absen"
+                                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                         }
                                     },
                                     modifier = Modifier
                                         .size(140.dp)
-                                        .shadow(24.dp, CircleShape, spotColor = ModernGreen),
+                                        .shadow(if (isButtonEnabled) 24.dp else 0.dp, CircleShape, spotColor = shadowColor),
                                     shape = CircleShape,
                                     color = Color.White,
-                                    border = BorderStroke(8.dp, ModernGreen.copy(alpha = 0.1f))
+                                    border = BorderStroke(8.dp, buttonMainColor.copy(alpha = 0.1f))
                                 ) {
                                     Box(
                                         contentAlignment = Alignment.Center,
@@ -342,7 +363,7 @@ fun Home(
                                                 .clip(CircleShape)
                                                 .background(
                                                     Brush.radialGradient(
-                                                        colors = listOf(ModernGreen, DarkEmerald)
+                                                        colors = listOf(buttonMainColor, buttonDarkColor)
                                                     )
                                                 ),
                                             contentAlignment = Alignment.Center
@@ -358,12 +379,12 @@ fun Home(
                                 }
                                 Spacer(Modifier.height(16.dp))
                                 Text(
-                                    "TAP UNTUK MULAI ABSEN",
+                                    text = if (isDone) "KAMU SUDAH ABSEN" else if (!hasSchedule) "TIDAK ADA JADWAL KEGIATAN" else "TAP UNTUK MULAI ABSEN",
                                     style = MaterialTheme.typography.titleMedium.copy(
                                         fontWeight = FontWeight.Black,
                                         letterSpacing = 1.sp
                                     ),
-                                    color = ModernGreen
+                                    color = buttonMainColor
                                 )
                             }
                         }
@@ -455,7 +476,16 @@ fun ModernStatItem(
 }
 
 @Composable
-fun ModernActivityItem(date: String?,status: String) {
+fun ModernActivityItem(date: String?, status: String) {
+    // Menentukan teks, ikon, dan warna dasar berdasarkan status
+    val (displayStatus, iconVector, itemColor) = when (status) {
+        "hadir" -> Triple("Hadir", Icons.Default.CheckCircle, ModernGreen)
+        "tidak_hadir" -> Triple("Alpa", Icons.Default.Close, Color(0xFFE74C3C)) // Merah
+        "izin" -> Triple("Izin", Icons.Default.Info, Color(0xFFF39C12)) // Oranye
+        "sakit" -> Triple("Sakit", Icons.Default.AddCircle, Color(0xFF3498DB)) // Biru (AddCircle menyerupai logo medis/kesehatan)
+        else -> Triple("Status Tidak Diketahui", Icons.Default.Warning, Color.Gray)
+    }
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -472,27 +502,26 @@ fun ModernActivityItem(date: String?,status: String) {
                 modifier = Modifier
                     .size(44.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(ModernGreen.copy(alpha = 0.1f)),
+                    // Menggunakan warna utama dengan transparansi 15% untuk latar belakang
+                    .background(color = itemColor.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.CheckCircle, contentDescription = null, tint = ModernGreen)
+                Icon(
+                    imageVector = iconVector,
+                    contentDescription = displayStatus,
+                    tint = itemColor // Warna ikon mengikuti status
+                )
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column {
-                val displayStatus = when (status) {
-                    "hadir" -> "Hadir"
-                    "tidak_hadir" -> "Tidak Hadir"
-                    "izin" -> "Izin"
-                    else -> "Status Tidak Diketahui"
-                }
                 Text(
-                    displayStatus,
+                    text = displayStatus,
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                    color = ModernGreen
+                    color = itemColor // Warna teks status mengikuti warna utama
                 )
                 Text(
-                    "Jumat, ${date ?: "Tanggal tidak tersedia"}",
-                    style = MaterialTheme.typography.bodySmall, 
+                    text = date ?: "Tanggal tidak tersedia",
+                    style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray
                 )
             }

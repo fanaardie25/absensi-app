@@ -10,4 +10,5 @@ data class AttendanceDataAll(
     val status: String,
     val photo_path: String,
     val date: String,
+    val name: String,
 )

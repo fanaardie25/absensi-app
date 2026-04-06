@@ -156,7 +156,7 @@ fun AbsensiJumatApp() {
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(72.dp)
-                        .shadow(12.dp, RoundedCornerShape(24.dp), spotColor = primaryColor),
+                        .shadow(5.dp, RoundedCornerShape(24.dp), spotColor = primaryColor),
                     shape = RoundedCornerShape(24.dp),
                     color = Color.White,
                     tonalElevation = 8.dp

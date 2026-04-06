@@ -122,7 +122,7 @@ fun LoginScreen(
 
             // Title Section
             Text(
-                text = "E-Presensi",
+                text = "SIA-SATA",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = Color(0xFF1E293B),
