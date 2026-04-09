@@ -6,6 +6,8 @@ data class ProfileResponse(
     val email: String,
     val role: String,
     val nis: String,
+    val gender: String,
+    val religion: String,
     val class_id: Int,
     val profile_photo_path: String,
     val schedule_id: Int,

@@ -123,17 +123,39 @@ fun Home(
 
     LaunchedEffect(userData) {
         userData?.let { user ->
-            val classId = user.class_id
-            val topicName = "class_$classId"
 
-            FirebaseMessaging.getInstance().subscribeToTopic(topicName)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        Log.d("FCM_HOME", "Berhasil subscribe ke: $topicName")
-                    } else {
-                        Log.e("FCM_HOME", "Gagal subscribe topik")
-                    }
-                }
+            // 1. PENGAMANAN DATA (Cleaning String)
+            // Kita buang spasi (kalau ada) dan jadikan huruf kecil semua biar formatnya seragam
+            val classId = user.class_id.toString().replace(" ", "_").lowercase()
+            val gender = user.gender.replace(" ", "_").lowercase()
+            val religion = user.religion.replace(" ", "_").lowercase()
+
+            val messaging = FirebaseMessaging.getInstance()
+
+            // Level 1: Topic Umum (Contoh: "class_1")
+            val topicLevel1 = "class_$classId"
+            messaging.subscribeToTopic(topicLevel1).addOnCompleteListener { task ->
+                if (task.isSuccessful) Log.d("FCM_TOPIC", "Sukses subscribe: $topicLevel1")
+                else Log.e("FCM_TOPIC", "Gagal subscribe: $topicLevel1")
+            }
+
+            // Level 2: Topic Gender (Contoh: "class_1_l")
+            val topicLevel2 = "class_${classId}_$gender"
+            messaging.subscribeToTopic(topicLevel2).addOnCompleteListener { task ->
+                if (task.isSuccessful) Log.d("FCM_TOPIC", "Sukses subscribe: $topicLevel2")
+            }
+
+            // Level 3: Topic Agama (Contoh: "class_1_l_islam")
+            val topicLevel3 = "class_${classId}_${gender}_$religion"
+            messaging.subscribeToTopic(topicLevel3).addOnCompleteListener { task ->
+                if (task.isSuccessful) Log.d("FCM_TOPIC", "Sukses subscribe: $topicLevel3")
+            }
+
+            val topicLevel4 = "class_${classId}_$religion"
+            messaging.subscribeToTopic(topicLevel4).addOnCompleteListener { task ->
+                if (task.isSuccessful) Log.d("FCM_TOPIC", "Sukses subscribe: $topicLevel4")
+                else Log.e("FCM_TOPIC", "Gagal subscribe: $topicLevel4")
+            }
         }
     }
 
