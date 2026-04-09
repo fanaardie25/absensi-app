@@ -13,15 +13,15 @@ android {
         minSdk = 24
         targetSdk = 36
         versionCode = 1
-        versionName = "1.4"
+        versionName = "1.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         debug {
-            buildConfigField("String", "BASE_URL", "\"http://192.168.1.6:8000/api/\"")
-            buildConfigField("String", "BASE_STORAGE", "\"http://192.168.1.6:8000/storage/\"")
+            buildConfigField("String", "BASE_URL", "\"http://192.168.1.30:8000/api/\"")
+            buildConfigField("String", "BASE_STORAGE", "\"http://192.168.1.30:8000/storage/\"")
         }
         release {
             buildConfigField("String", "BASE_URL", "\"http://siasata.rplxsata.com/api/\"")

@@ -21,14 +21,14 @@ class LoginViewModel: ViewModel() {
         errorMessage = ""
     }
 
-    fun LoginRequest(email: String, password: String,onContext: Context, onSuccess: (String) -> Unit) {
-        if (email.isEmpty() || password.isEmpty()) {
-            errorMessage = "Email atau password tidak boleh kosong"
+    fun LoginRequest(login: String, password: String, onContext: Context, onSuccess: (String) -> Unit) {
+        if (login.isEmpty() || password.isEmpty()) {
+            errorMessage = "NIS/Email atau password tidak boleh kosong"
             return
         }
 
         isLoading = true
-        val params = mapOf("email" to email, "password" to password)
+        val params = mapOf("login" to login, "password" to password)
 
         RetrofitClient.instance.login(params).enqueue(object : Callback<LoginResponse> {
 

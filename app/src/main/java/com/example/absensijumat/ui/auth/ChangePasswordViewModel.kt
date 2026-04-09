@@ -22,6 +22,7 @@ class ChangePasswordViewModel : ViewModel() {
         oldPassword: String,
         newPassword: String,
         confirmPassword: String,
+        newEmail: String? = null,
         onSuccess: () -> Unit
     ) {
         if (newPassword != confirmPassword) {
@@ -34,25 +35,30 @@ class ChangePasswordViewModel : ViewModel() {
 
         isLoading = true
         val bearer = "Bearer $token"
-        val params = mapOf(
+        
+        val params = mutableMapOf(
             "old_password" to oldPassword,
             "new_password" to newPassword,
             "new_password_confirmation" to confirmPassword
         )
+        
+        if (!newEmail.isNullOrEmpty()) {
+            params["email"] = newEmail
+        }
 
         RetrofitClient.instance.changePassword(bearer, params).enqueue(object : Callback<Void> {
             override fun onResponse(call: Call<Void>, response: Response<Void>) {
                 isLoading = false
                 if (response.isSuccessful) {
-                    successMessage = "Password berhasil diubah"
+                    successMessage = "Data berhasil diperbarui"
                     onSuccess()
                 } else {
                     val errorBody = response.errorBody()?.string()
                     errorMessage = try {
-                        val jsonObject = JSONObject(errorBody.toString())
+                        val jsonObject = JSONObject(errorBody)
                         jsonObject.getString("message")
                     } catch (e: Exception) {
-                        "Gagal mengubah password: ${response.code()}"
+                        "Gagal memperbarui data: ${response.code()}"
                     }
                 }
             }

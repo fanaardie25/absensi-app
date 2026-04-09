@@ -162,10 +162,13 @@ fun AbsensiJumatApp() {
     }
 
     if (showChangePassword) {
-        ChangePasswordScreen(onSuccess = {
-            showChangePassword = false
-            viewModel.getCurrentUser(context)
-        })
+        ChangePasswordScreen(
+            initialEmail = viewModel.userData?.email ?: "",
+            onSuccess = {
+                showChangePassword = false
+                viewModel.getCurrentUser(context)
+            }
+        )
     } else {
         Scaffold(
             bottomBar = {

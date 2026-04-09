@@ -17,6 +17,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -56,7 +57,7 @@ fun LoginScreen(
     onLoginSuccess: (String) -> Unit
 ) {
     val context = LocalContext.current
-    var email by remember { mutableStateOf("") }
+    var loginInput by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
@@ -70,13 +71,8 @@ fun LoginScreen(
         onDismiss = { viewModel.clearError() }
     )
 
-    // Logika Validasi Button
-    val isEmailValid by remember {
-        derivedStateOf { Patterns.EMAIL_ADDRESS.matcher(email).matches() }
-    }
-    
     val isButtonEnabled by remember {
-        derivedStateOf { isEmailValid && password.isNotEmpty() && !viewModel.isLoading }
+        derivedStateOf { loginInput.isNotEmpty() && password.isNotEmpty() && !viewModel.isLoading }
     }
 
     Box(
@@ -149,44 +145,27 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            val isEmailError by remember {
-                derivedStateOf {
-                    email.isNotEmpty() && !isEmailValid
-                }
-            }
-
 
             OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Email") },
-                isError = isEmailError,
-                supportingText = {
-                    if (isEmailError) {
-                        Text(
-                            text = "Format email tidak valid",
-                            color = Color.Red
-                        )
-                    }
-                },
+                value = loginInput,
+                onValueChange = { loginInput = it },
+                label = { Text("NIS atau Email") },
                 leadingIcon = {
                     Icon(
-                        Icons.Default.Email,
+                        Icons.Default.Person,
                         contentDescription = null,
-                        tint = if (isEmailError) Color.Red else primaryEmerald
+                        tint = primaryEmerald
                     )
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = primaryEmerald,
-                    errorBorderColor = Color.Red,
-                    errorLabelColor = Color.Red,
-                    errorCursorColor = Color.Red
                 ),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 singleLine = true
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = password,
@@ -222,7 +201,7 @@ fun LoginScreen(
             // Login Button
             Button(
                 onClick = {
-                    viewModel.LoginRequest(email, password, context) { token ->
+                    viewModel.LoginRequest(loginInput, password, context) { token ->
                         onLoginSuccess(token)
                     }
                 },
