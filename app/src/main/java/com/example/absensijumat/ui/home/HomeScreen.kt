@@ -13,7 +13,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,8 +22,6 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
@@ -50,10 +47,9 @@ import coil.compose.AsyncImage
 import com.example.absensijumat.BuildConfig
 import com.example.absensijumat.MainActivity
 import com.example.absensijumat.R
-import com.example.absensijumat.response.AttendanceData
-import com.example.absensijumat.response.LatestActivityResponse
 import com.example.absensijumat.ui.components.ErrorDialog
 import com.example.absensijumat.ui.components.SuccessDialog
+import com.example.absensijumat.ui.components.shimmerEffect
 import com.example.absensijumat.ui.theme.AbsensiJumatTheme
 import com.google.firebase.messaging.FirebaseMessaging
 
@@ -232,10 +228,7 @@ fun Home(
                 .fillMaxSize()
         ) {
             if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center),
-                    color = ModernGreen
-                )
+                HomeSkeleton()
             } else {
                 LazyColumn(
                     modifier = modifier
@@ -458,6 +451,72 @@ fun Home(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun HomeSkeleton(modifier: Modifier = Modifier) {
+    LazyColumn(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(22.dp),
+        contentPadding = PaddingValues(bottom = 32.dp, top = 8.dp)
+    ) {
+        // Welcome Text Skeleton
+        item {
+            Column {
+                Box(modifier = Modifier.size(100.dp, 20.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+                Spacer(Modifier.height(8.dp))
+                Box(modifier = Modifier.size(200.dp, 32.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+            }
+        }
+
+        // Card Skeleton
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp)
+                    .clip(RoundedCornerShape(28.dp))
+                    .shimmerEffect()
+            )
+        }
+
+        // Button Skeleton
+        item {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(140.dp)
+                        .clip(CircleShape)
+                        .shimmerEffect()
+                )
+            }
+        }
+
+        // Stats Row Skeleton
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Box(modifier = Modifier.weight(1f).height(120.dp).clip(RoundedCornerShape(24.dp)).shimmerEffect())
+                Box(modifier = Modifier.weight(1f).height(120.dp).clip(RoundedCornerShape(24.dp)).shimmerEffect())
+            }
+        }
+
+        // Activity Skeleton Header
+        item {
+            Box(modifier = Modifier.size(150.dp, 24.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+        }
+        // Activity Item Skeleton
+        items(2) {
+            Box(modifier = Modifier.fillMaxWidth().height(80.dp).clip(RoundedCornerShape(20.dp)).shimmerEffect())
         }
     }
 }

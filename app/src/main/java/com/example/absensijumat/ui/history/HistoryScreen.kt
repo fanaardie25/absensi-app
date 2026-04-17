@@ -1,15 +1,10 @@
 package com.example.absensijumat.ui.history
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,6 +22,7 @@ import coil.compose.AsyncImage
 import com.example.absensijumat.BuildConfig
 import com.example.absensijumat.response.AttendanceDataAll
 import com.example.absensijumat.ui.components.ErrorDialog
+import com.example.absensijumat.ui.components.shimmerEffect
 import com.example.absensijumat.ui.theme.AbsensiJumatTheme
 
 // Warna konsisten dengan Home
@@ -76,10 +72,7 @@ fun HistoryScreen(modifier: Modifier = Modifier, viewModel: HistoryViewModel = v
                 .fillMaxSize()
         ) {
             if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center),
-                    color = ModernGreen
-                )
+                HistorySkeleton()
             } else {
                 Column(
                     modifier = Modifier
@@ -109,6 +102,26 @@ fun HistoryScreen(modifier: Modifier = Modifier, viewModel: HistoryViewModel = v
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun HistorySkeleton() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+    ) {
+        Box(modifier = Modifier.size(150.dp, 24.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+        Spacer(modifier = Modifier.height(12.dp))
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(bottom = 24.dp)
+        ) {
+            items(10) {
+                Box(modifier = Modifier.fillMaxWidth().height(96.dp).clip(RoundedCornerShape(20.dp)).shimmerEffect())
             }
         }
     }

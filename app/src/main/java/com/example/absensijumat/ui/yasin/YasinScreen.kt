@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -31,6 +32,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.absensijumat.R
 import com.example.absensijumat.response.Ayat
 import com.example.absensijumat.ui.components.ErrorDialog
+import com.example.absensijumat.ui.components.shimmerEffect
 import com.example.absensijumat.ui.home.DarkEmerald
 import com.example.absensijumat.ui.home.ModernGreen
 import com.example.absensijumat.ui.theme.AbsensiJumatTheme
@@ -78,6 +80,8 @@ fun YasinScreen(
                                 style = MaterialTheme.typography.labelSmall,
                                 color = ModernGreen.copy(alpha = 0.7f)
                             )
+                        } else if (isLoading) {
+                            Box(modifier = Modifier.size(100.dp, 12.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
                         }
                     }
                 },
@@ -123,13 +127,7 @@ fun YasinScreen(
                 .fillMaxSize()
         ) {
             if (isLoading) {
-                Column(
-                    modifier = Modifier.align(Alignment.Center),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    CircularProgressIndicator(color = ModernGreen, strokeWidth = 4.dp)
-                    Spacer(Modifier.height(16.dp))
-                }
+                YasinSkeleton()
             } else if (yasin != null) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -152,6 +150,51 @@ fun YasinScreen(
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun YasinSkeleton() {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 32.dp)
+    ) {
+        // Hero Section Skeleton
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+                    .height(180.dp)
+                    .clip(RoundedCornerShape(32.dp))
+                    .shimmerEffect()
+            )
+        }
+
+        // Ayat Cards Skeleton
+        items(5) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Box(modifier = Modifier.size(34.dp).clip(RoundedCornerShape(10.dp)).shimmerEffect())
+                    Box(modifier = Modifier.size(32.dp).clip(CircleShape).shimmerEffect())
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Box(modifier = Modifier.fillMaxWidth().height(40.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+                Spacer(modifier = Modifier.height(16.dp))
+                Box(modifier = Modifier.size(150.dp, 20.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+                Spacer(modifier = Modifier.height(8.dp))
+                Box(modifier = Modifier.fillMaxWidth().height(16.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+                Spacer(modifier = Modifier.height(16.dp))
+                HorizontalDivider(color = Color.LightGray.copy(alpha = 0.2f))
             }
         }
     }

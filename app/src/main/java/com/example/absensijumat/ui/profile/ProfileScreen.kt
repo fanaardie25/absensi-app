@@ -46,6 +46,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import com.example.absensijumat.ui.components.ErrorDialog
+import com.example.absensijumat.ui.components.shimmerEffect
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -132,10 +133,7 @@ fun ProfileScreen(
                 .fillMaxSize()
         ) {
             if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center),
-                    color = ModernGreen
-                )
+                ProfileSkeleton()
             } else if (profile != null) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -396,6 +394,34 @@ fun ProfileScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ProfileSkeleton() {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Photo Skeleton
+        Box(modifier = Modifier.size(130.dp).clip(CircleShape).shimmerEffect())
+        Spacer(modifier = Modifier.height(16.dp))
+        // Name Skeleton
+        Box(modifier = Modifier.size(200.dp, 28.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+        Spacer(modifier = Modifier.height(8.dp))
+        // NIS Skeleton
+        Box(modifier = Modifier.size(120.dp, 20.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Info Cards Skeleton
+        repeat(4) {
+            Box(modifier = Modifier.fillMaxWidth().height(88.dp).clip(RoundedCornerShape(20.dp)).shimmerEffect())
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        // Logout Button Skeleton
+        Box(modifier = Modifier.fillMaxWidth().height(56.dp).clip(RoundedCornerShape(16.dp)).shimmerEffect())
     }
 }
 
