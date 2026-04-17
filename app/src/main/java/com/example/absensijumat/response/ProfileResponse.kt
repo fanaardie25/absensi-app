@@ -33,4 +33,6 @@ data class SchoolClass(
 data class Stats(
     val hadir: Int,
     val tidak_hadir: Int,
+    val sakit: Int,
+    val izin: Int
 )

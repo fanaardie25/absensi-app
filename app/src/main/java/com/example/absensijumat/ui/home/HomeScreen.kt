@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
@@ -407,24 +408,50 @@ fun Home(
 
 
                     item {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            ModernStatItem(
-                                modifier = Modifier.weight(1f),
-                                label = "Total Hadir",
-                                value = userData?.stats?.hadir?.toString() ?: "0",
-                                icon = Icons.Default.CheckCircle,
-                                color = ModernGreen
-                              )
-                            ModernStatItem(
-                                modifier = Modifier.weight(1f),
-                                label = "Total Alpa",
-                                value = userData?.stats?.tidak_hadir?.toString() ?: "0",
-                                icon = Icons.Default.Warning,
-                                color = Color(0xFFE74C3C)
-                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                ModernStatItem(
+                                    modifier = Modifier.weight(1f),
+                                    label = "Total Hadir",
+                                    value = userData?.stats?.hadir?.toString() ?: "0",
+                                    icon = Icons.Default.CheckCircle,
+                                    color = ModernGreen
+                                )
+                                ModernStatItem(
+                                    modifier = Modifier.weight(1f),
+                                    label = "Total Alpa",
+                                    value = userData?.stats?.tidak_hadir?.toString() ?: "0",
+                                    icon = Icons.Default.Close,
+                                    color = Color(0xFFE74C3C)
+                                )
+                            }
+
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                ModernStatItem(
+                                    modifier = Modifier.weight(1f),
+                                    label = "Total Izin",
+                                    value = userData?.stats?.izin?.toString() ?: "0",
+                                    icon = Icons.Default.Info,
+                                    color = Color(0xFF3498DB)
+                                )
+                                ModernStatItem(
+                                    modifier = Modifier.weight(1f),
+                                    label = "Total Sakit",
+                                    value = userData?.stats?.sakit?.toString() ?: "0",
+                                    icon = Icons.Default.Face,
+                                    color = Color(0xFFF39C12)
+                                )
+                            }
                         }
                     }
 
