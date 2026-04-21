@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.absensijumat.network.RetrofitClient
 import com.example.absensijumat.response.LoginResponse
+import com.example.absensijumat.utils.ErrorHandler
 import com.example.absensijumat.utils.SessionManager
 import com.google.gson.Gson
 import retrofit2.Callback
@@ -55,9 +56,9 @@ class LoginViewModel: ViewModel() {
                     try {
                         val errorObj = Gson().fromJson(errorString, LoginResponse::class.java)
 
-                        errorMessage = errorObj.message ?: "Login Gagal"
+                        errorMessage = errorObj.message ?: ErrorHandler.getFriendlyMessage(response.code())
                     } catch (e: Exception) {
-                        errorMessage = "Error kode: ${response.code()}"
+                        errorMessage = ErrorHandler.getFriendlyMessage(response.code())
                     }
                 }
             }
@@ -67,7 +68,7 @@ class LoginViewModel: ViewModel() {
                 t: Throwable
             ) {
                 isLoading = false
-                errorMessage = "Koneksi Error: ${t.message}"
+                errorMessage = ErrorHandler.getFriendlyMessage(t)
             }
         })
     }

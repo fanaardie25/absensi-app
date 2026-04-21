@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import com.example.absensijumat.network.ApiService
 import com.example.absensijumat.network.RetrofitClient
 import com.example.absensijumat.response.ProfileResponse
+import com.example.absensijumat.utils.ErrorHandler
 import com.example.absensijumat.utils.SessionManager
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -31,7 +32,7 @@ class ProfileViewModel(): ViewModel() {
         val sessionManager = SessionManager(context)
         val token = sessionManager.fetchAuthToken()
         if(token == null){
-            errorMessage = "Token tidak ditemukan"
+            errorMessage = "Sesi telah berakhir. Silakan login kembali."
             return
         }
         isLoading = true
@@ -49,10 +50,10 @@ class ProfileViewModel(): ViewModel() {
                     if(body != null){
                         profileData = body
                     }else{
-                        errorMessage = "Data tidak ditemukan"
+                        errorMessage = "Gagal memuat profil."
                     }
                 }else{
-                    errorMessage = "Gagal mengambil data: ${response.code()}"
+                    errorMessage = ErrorHandler.getFriendlyMessage(response.code())
                 }
             }
 
@@ -61,7 +62,7 @@ class ProfileViewModel(): ViewModel() {
                 t: Throwable?
             ) {
                 isLoading = false
-                errorMessage = "Terjadi Kesalahan: ${t?.message}"
+                errorMessage = ErrorHandler.getFriendlyMessage(t)
             }
         })
     }
@@ -71,7 +72,8 @@ class ProfileViewModel(): ViewModel() {
         val token = sessionManager.fetchAuthToken()
 
         if (token == null){
-            errorMessage = "Token tidak ditemukan"
+            sessionManager.deleteAuthToken()
+            onLogoutSuccess()
             return
         }
 
@@ -99,7 +101,7 @@ class ProfileViewModel(): ViewModel() {
         val token = sessionManager.fetchAuthToken()
 
         if (token == null) {
-            errorMessage = "Token tidak ditemukan"
+            errorMessage = "Sesi telah berakhir."
             return
         }
         isLoading = true
@@ -114,13 +116,13 @@ class ProfileViewModel(): ViewModel() {
                 if (response.isSuccessful) {
                     fetchProfile(context)
                 } else {
-                    errorMessage = "Gagal upload: ${response.code()}"
+                    errorMessage = ErrorHandler.getFriendlyMessage(response.code())
                 }
             }
 
             override fun onFailure(call: Call<ApiService.UploadResponse>, t: Throwable) {
                 isLoading = false
-                errorMessage = "Terjadi Kesalahan: ${t.message}"
+                errorMessage = ErrorHandler.getFriendlyMessage(t)
             }
         })
     }

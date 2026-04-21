@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.absensijumat.network.RetrofitClient
+import com.example.absensijumat.utils.ErrorHandler
 import com.example.absensijumat.utils.SessionManager
 import org.json.JSONObject
 import retrofit2.Call
@@ -58,14 +59,14 @@ class ChangePasswordViewModel : ViewModel() {
                         val jsonObject = JSONObject(errorBody)
                         jsonObject.getString("message")
                     } catch (e: Exception) {
-                        "Gagal memperbarui data: ${response.code()}"
+                        ErrorHandler.getFriendlyMessage(response.code())
                     }
                 }
             }
 
             override fun onFailure(call: Call<Void>, t: Throwable) {
                 isLoading = false
-                errorMessage = "Terjadi kesalahan: ${t.message}"
+                errorMessage = ErrorHandler.getFriendlyMessage(t)
             }
         })
     }

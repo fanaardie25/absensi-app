@@ -7,9 +7,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.absensijumat.network.RetrofitClient
 import com.example.absensijumat.response.ActivityResponse
-import com.example.absensijumat.response.AttendanceData
 import com.example.absensijumat.response.AttendanceDataAll
-import com.example.absensijumat.response.LatestActivityResponse
+import com.example.absensijumat.utils.ErrorHandler
 import com.example.absensijumat.utils.SessionManager
 import retrofit2.Call
 import retrofit2.Callback
@@ -30,7 +29,7 @@ class HistoryViewModel(): ViewModel() {
         val token = sessionManager.fetchAuthToken()
 
         if (token == null){
-            errorMessage = "Token tidak ditemukan"
+            errorMessage = "Sesi telah berakhir. Silakan login kembali."
             return
         }
         
@@ -49,10 +48,10 @@ class HistoryViewModel(): ViewModel() {
                     if (body != null) {
                         activityList = body.data ?: emptyList()
                     } else {
-                        errorMessage = "Data tidak ditemukan"
+                        errorMessage = "Tidak ada riwayat aktivitas."
                     }
                 } else {
-                    errorMessage = "Gagal mengambil data: ${response.code()}"
+                    errorMessage = ErrorHandler.getFriendlyMessage(response.code())
                 }
             }
 
@@ -61,7 +60,7 @@ class HistoryViewModel(): ViewModel() {
                 t: Throwable
             ) {
                 isLoading = false
-                errorMessage = "Terjadi Kesalahan: ${t.message}"
+                errorMessage = ErrorHandler.getFriendlyMessage(t)
             }
         })
     }

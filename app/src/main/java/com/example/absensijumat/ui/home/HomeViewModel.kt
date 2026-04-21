@@ -14,6 +14,7 @@ import com.example.absensijumat.network.RetrofitClient
 import com.example.absensijumat.response.AttendanceData
 import com.example.absensijumat.response.LatestActivityResponse
 import com.example.absensijumat.response.ProfileResponse
+import com.example.absensijumat.utils.ErrorHandler
 import com.example.absensijumat.utils.SessionManager
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
@@ -57,7 +58,7 @@ class HomeViewModel(): ViewModel() {
                     errorMessage = "GPS sedang mencari sinyal. Coba beberapa saat lagi."
                 }
             }.addOnFailureListener {
-                errorMessage = "Kesalahan lokasi: ${it.message}"
+                errorMessage = "Gagal mendapatkan lokasi. Pastikan GPS kamu aktif."
             }
     }
 
@@ -105,14 +106,14 @@ class HomeViewModel(): ViewModel() {
                             val jsonObject = JSONObject(errorJsonString)
                             jsonObject.getString("message")
                         } catch (e: Exception) {
-                            "Gagal: ${response.code()}"
+                            ErrorHandler.getFriendlyMessage(response.code())
                         }
-                        errorMessage = "Gagal: $errorMessageFromServer"
+                        errorMessage = errorMessageFromServer
                     }
                 }
                 override fun onFailure(call: Call<Void>, t: Throwable) {
                     isLoading = false
-                    errorMessage = t.message ?: "Error"
+                    errorMessage = ErrorHandler.getFriendlyMessage(t)
                 }
             })
     }
@@ -121,7 +122,7 @@ class HomeViewModel(): ViewModel() {
         val sessionManager = SessionManager(context)
         val token = sessionManager.fetchAuthToken()
         if(token == null){
-            errorMessage = "Token tidak ditemukan"
+            errorMessage = "Sesi telah berakhir. Silakan login kembali."
             return
         }
         isLoading = true
@@ -140,10 +141,10 @@ class HomeViewModel(): ViewModel() {
                     if(body != null){
                         userData = body
                     }else{
-                        errorMessage = "Data tidak ditemukan"
+                        errorMessage = "Gagal memuat profil. Silakan coba lagi."
                     }
                 }else{
-                    errorMessage = "Gagal mengambil data: ${response.code()}"
+                    errorMessage = ErrorHandler.getFriendlyMessage(response.code())
                 }
             }
 
@@ -152,7 +153,7 @@ class HomeViewModel(): ViewModel() {
                 t: Throwable?
             ) {
                 isLoading = false
-                errorMessage = "Terjadi Kesalahan: ${t?.message}"
+                errorMessage = ErrorHandler.getFriendlyMessage(t)
             }
         })
     }
@@ -162,7 +163,7 @@ class HomeViewModel(): ViewModel() {
         val token = sessionManager.fetchAuthToken()
 
         if (token == null){
-            errorMessage = "Token tidak ditemukan"
+            errorMessage = "Sesi telah berakhir."
             return
         }
 
@@ -182,10 +183,10 @@ class HomeViewModel(): ViewModel() {
                         activityData = body.data?.firstOrNull()
                         Log.d("LatestActivity", "Data: $body")
                     }else{
-                        errorMessage = "Data tidak ditemukan"
+                        // Tidak ada aktivitas bukan berarti error
                     }
                 }else{
-                    errorMessage = "Gagal mengambil data: ${response.code()}"
+                    errorMessage = ErrorHandler.getFriendlyMessage(response.code())
                 }
             }
 
@@ -194,7 +195,7 @@ class HomeViewModel(): ViewModel() {
                 t: Throwable
             ) {
                 isLoading = false
-                errorMessage = "Terjadi Kesalahan: ${t.message}"
+                errorMessage = ErrorHandler.getFriendlyMessage(t)
             }
         })
     }

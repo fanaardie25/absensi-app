@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import com.example.absensijumat.network.RetrofitClient
 import com.example.absensijumat.response.YasinData
 import com.example.absensijumat.response.YasinResponse
+import com.example.absensijumat.utils.ErrorHandler
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -36,13 +37,13 @@ class YasinViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     yasinData = response.body()?.data
                 } else {
-                    errorMessage = "Gagal memuat Surah Yasin: ${response.code()}"
+                    errorMessage = ErrorHandler.getFriendlyMessage(response.code())
                 }
             }
 
             override fun onFailure(call: Call<YasinResponse>, t: Throwable) {
                 isLoading = false
-                errorMessage = t.message ?: "Terjadi kesalahan koneksi"
+                errorMessage = ErrorHandler.getFriendlyMessage(t)
             }
         })
     }
